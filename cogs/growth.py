@@ -13,69 +13,48 @@ class Growth(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="growth", description="Predict the server's growth.")
+    @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
     async def growth(self, interaction: discord.Interaction, target: int):
-        await interaction.response.defer(thinking=True)  # Show "考え中..." to prevent timeout
-
+        
+        await interaction.response.defer(thinking=True)
         guild = interaction.guild
         members = guild.members
 
-        join_dates = [member.joined_at for member in members if member.joined_at is not None]
+        join_dates = [m.joined_at for m in members if m.joined_at]
         join_dates.sort()
-
         if len(join_dates) < 2:
-            await interaction.followup.send("Insufficient data to perform regression analysis.")
+            await interaction.response.send_message("回帰分析を行うためのデータが不足しています。")
             return
-
+        
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
-        # Use polynomial features for a more detailed model
         poly = PolynomialFeatures(degree=2)
         X_poly = poly.fit_transform(X)
         model = LinearRegression()
         model.fit(X_poly, y)
 
-        coef = model.coef_
-        intercept = model.intercept_
+        # Quadratic coefficients a*x^2 + b*x + c
+        a = model.coef_[2]
+        b = model.coef_[1]
+        c = model.intercept_ + model.coef_[0] - target
 
-        # Predict the ordinal date for the target
-        a = intercept
-        b = coef[1] if len(coef) > 1 else 0
-        c = coef[2] if len(coef) > 2 else 0
-        A = c
-        B = b
-        C = a - target
-
-        if abs(A) < 1e-8:  # fallback to linear if c is near zero
-            if abs(B) < 1e-8:
-                await interaction.followup.send("No growth detected.")
-                return
-            else:
-                target_date_ordinal = -C / B
-        else:
-            discriminant = B**2 - 4*A*C
-            if discriminant < 0:
-                await interaction.followup.send("No valid predicted date found.")
-                return
-            sol1 = (-B + math.sqrt(discriminant)) / (2*A)
-            sol2 = (-B - math.sqrt(discriminant)) / (2*A)
-            target_date_ordinal = sol1 if sol1 > 0 else sol2
-
-        if target_date_ordinal <= 0:
-            await interaction.followup.send("No valid predicted date found.")
+        disc = b**2 - 4*a*c
+        if a == 0 or disc < 0:
+            await interaction.response.send_message("成長予測ができませんでした。")
             return
+        
+        sol1 = (-b + math.sqrt(disc)) / (2*a)
+        sol2 = (-b - math.sqrt(disc)) / (2*a)
+        future_ordinal = max(sol1, sol2)
+        target_date = datetime.fromordinal(int(round(future_ordinal)))
 
-        target_date = datetime.fromordinal(int(round(target_date_ordinal)))
-
-        # Plot
-        plt.style.use('seaborn-whitegrid')
         plt.figure(figsize=(10, 6))
         plt.scatter(join_dates, y, color='blue', label='Actual Data')
-        plt.plot(join_dates, model.predict(X_poly), color='red', label='Regression Curve')
+        plt.plot(join_dates, model.predict(X_poly), color='red', label='Regression')
         plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}')
-        plt.axvline(x=target_date, color='purple', linestyle='--', label=f'Predicted Date: {target_date.date()}')
-        plt.xlabel('Date Joined')
+        plt.axvline(x=target_date, color='purple', linestyle='--', label=f'Predicted: {target_date.date()}')
+        plt.xlabel('Join Date')
         plt.ylabel('Member Count')
         plt.title('Server Growth Prediction')
         plt.legend()
@@ -86,6 +65,7 @@ class Growth(commands.Cog):
         plt.close()
 
         file = discord.File(buf, filename='growth_prediction.png')
-        await interaction.followup.send(file=file, content=f'Predicted date for reaching {target} members: {target_date.date()}')
+        await interaction.response.send_message(file=file, content=f'{target}人に達する予測日: {target_date.date()}')
+
 async def setup(bot):
     await bot.add_cog(Growth(bot))
