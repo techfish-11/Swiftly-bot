@@ -9,9 +9,11 @@ class FirstComment(commands.Cog):
     async def first_comment(self, interaction: discord.Interaction):
         channel = interaction.channel
         try:
-            first_message = await channel.history(limit=1, oldest_first=True).flatten()
+            first_message = None
+            async for message in channel.history(limit=1, oldest_first=True):
+                first_message = message
+                break
             if first_message:
-                first_message = first_message[0]
                 await interaction.response.send_message(f"The first message in this channel: {first_message.jump_url}")
             else:
                 await interaction.response.send_message("No messages found in this channel.")
