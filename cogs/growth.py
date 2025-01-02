@@ -44,19 +44,24 @@ class Growth(commands.Cog):
         model.fit(X_poly, y)
 
         start_day = X[-1][0]
+        end_day = start_day + 36500
         found_date = None
-        for i in range(36500):
-            test_day = start_day + i
-            pred = model.predict(poly.transform([[test_day]]))[0]
+
+        left, right = start_day, end_day
+        while left <= right:
+            mid = (left + right) // 2
+            pred = model.predict(poly.transform([[mid]]))[0]
             if pred >= target:
-                found_date = datetime.fromordinal(int(test_day))
-                break
+                found_date = datetime.fromordinal(int(mid))
+                right = mid - 1
+            else:
+                left = mid + 1
 
         if not found_date:
             await interaction.response.send_message("予測範囲内でその目標値に到達しません。")
             return
 
-        X_plot = np.linspace(X[0][0], test_day, 200).reshape(-1, 1)
+        X_plot = np.linspace(X[0][0], found_date.toordinal(), 200).reshape(-1, 1)
         y_plot = model.predict(poly.transform(X_plot))
 
         plt.figure(figsize=(10, 6))
