@@ -6,6 +6,7 @@ from sklearn.linear_model import LinearRegression
 import io
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold, cross_val_score
+from statsmodels.tsa.arima.model import ARIMA
 
 import matplotlib.pyplot as plt
 
@@ -27,6 +28,7 @@ class Growth(commands.Cog):
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
+        # Polynomial Regression
         best_score = float('-inf')
         best_degree = 2
 
@@ -45,6 +47,12 @@ class Growth(commands.Cog):
         model = LinearRegression()
         model.fit(X_poly, y)
 
+        # Time Series Forecasting using ARIMA
+
+        arima_model = ARIMA(y, order=(5, 1, 0))
+        arima_model_fit = arima_model.fit()
+        arima_forecast = arima_model_fit.forecast(steps=36500)
+
         start_day = X[-1][0]
         end_day = start_day + 36500
         found_date = None
@@ -52,7 +60,9 @@ class Growth(commands.Cog):
         left, right = start_day, end_day
         while left <= right:
             mid = (left + right) // 2
-            pred = model.predict(poly.transform([[mid]]))[0]
+            pred_poly = model.predict(poly.transform([[mid]]))[0]
+            pred_arima = arima_forecast[mid - start_day] if mid - start_day < len(arima_forecast) else float('inf')
+            pred = (pred_poly + pred_arima) / 2
             if pred >= target:
                 found_date = datetime.fromordinal(int(mid))
                 right = mid - 1
@@ -64,7 +74,9 @@ class Growth(commands.Cog):
             return
 
         X_plot = np.linspace(X[0][0], found_date.toordinal(), 200).reshape(-1, 1)
-        y_plot = model.predict(poly.transform(X_plot))
+        y_plot_poly = model.predict(poly.transform(X_plot))
+        y_plot_arima = arima_model_fit.predict(start=0, end=len(X_plot) - 1)
+        y_plot = (y_plot_poly + y_plot_arima) / 2
 
         plt.figure(figsize=(10, 6))
         plt.scatter(join_dates, y, color='blue', label='Actual Data')
