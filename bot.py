@@ -11,7 +11,8 @@ intents.members = True
 intents.messages = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+client = discord.AutoShardedClient(intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents, client=client)
 
 # tokenを.envファイルから取得
 dotenv.load_dotenv()
