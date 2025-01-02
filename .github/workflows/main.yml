@@ -1,0 +1,27 @@
+name: Update and Restart Service
+
+on:
+  push:
+    branches:
+      - main # mainブランチが更新されたときに実行
+
+jobs:
+  update-and-restart:
+    runs-on: self-hosted
+
+    steps:
+      # リポジトリのディレクトリに移動して更新
+      - name: Pull latest changes
+        run: |
+          cd /home/adminpi/Swiftly-bot
+          if [ -d ".git" ]; then
+            git reset --hard
+            git pull origin main
+          else
+            git clone https://github.com/techfish-11/Swiftly-bot.git /home/adminpi/Swiftly-bot
+          fi
+
+      # systemdサービスを再起動
+      - name: Restart systemd service
+        run: |
+          sudo systemctl restart swiftly-bot.service
