@@ -28,27 +28,7 @@ class Growth(commands.Cog):
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
-        # Polynomial Regression
-        best_score = float('-inf')
-        best_degree = 2
-
-        for deg in range(1, 6):
-            poly_temp = PolynomialFeatures(degree=deg)
-            X_poly_temp = poly_temp.fit_transform(X)
-            model_temp = LinearRegression()
-            scores = cross_val_score(model_temp, X_poly_temp, y, cv=KFold(n_splits=3), scoring='r2')
-            score_mean = scores.mean()
-            if score_mean > best_score:
-                best_score = score_mean
-                best_degree = deg
-
-        poly = PolynomialFeatures(degree=best_degree)
-        X_poly = poly.fit_transform(X)
-        model = LinearRegression()
-        model.fit(X_poly, y)
-
         # Time Series Forecasting using ARIMA
-
         arima_model = ARIMA(y, order=(5, 1, 0))
         arima_model_fit = arima_model.fit()
         arima_forecast = arima_model_fit.forecast(steps=36500)
@@ -60,10 +40,8 @@ class Growth(commands.Cog):
         left, right = start_day, end_day
         while left <= right:
             mid = (left + right) // 2
-            pred_poly = model.predict(poly.transform([[mid]]))[0]
             pred_arima = arima_forecast[mid - start_day] if mid - start_day < len(arima_forecast) else float('inf')
-            pred = (pred_poly + pred_arima) / 2
-            if pred >= target:
+            if pred_arima >= target:
                 found_date = datetime.fromordinal(int(mid))
                 right = mid - 1
             else:
@@ -74,13 +52,11 @@ class Growth(commands.Cog):
             return
 
         X_plot = np.linspace(X[0][0], found_date.toordinal(), 200).reshape(-1, 1)
-        y_plot_poly = model.predict(poly.transform(X_plot))
         y_plot_arima = arima_model_fit.predict(start=0, end=len(X_plot) - 1)
-        y_plot = (y_plot_poly + y_plot_arima) / 2
 
         plt.figure(figsize=(10, 6))
         plt.scatter(join_dates, y, color='blue', label='Actual Data')
-        plt.plot([datetime.fromordinal(int(x[0])) for x in X_plot], y_plot, color='red', label='Prediction')
+        plt.plot([datetime.fromordinal(int(x[0])) for x in X_plot], y_plot_arima, color='red', label='Prediction')
         plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}')
         plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}')
         plt.xlabel('Join Date')
