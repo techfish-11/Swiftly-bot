@@ -68,6 +68,8 @@ class Growth(commands.Cog):
         embed.set_image(url="attachment://growth_prediction.png")
         embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
         embed.add_field(name="予測精度", value=f"{model.score(X, y):.2f}", inline=True)
+        embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
+        
 
         await interaction.response.send_message(embed=embed, file=file)
 
