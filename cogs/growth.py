@@ -15,7 +15,6 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="Predict the server's growth.")
     async def growth(self, interaction: discord.Interaction, target: int):
-
         guild = interaction.guild
         members = guild.members
 
@@ -39,14 +38,9 @@ class Growth(commands.Cog):
         intercept = model.intercept_
 
         # Predict the ordinal date for the target
-        # For the inverse, we solve target = model(X_poly) => target = coef*X_poly + intercept
-        # We estimate it with Newton's method or a simple approximate search
-        # (because it's a quadratic). We'll do a direct solve with the known formula.
-        # model: a + b*x + c*x^2 = target
         a = intercept
         b = coef[1] if len(coef) > 1 else 0
         c = coef[2] if len(coef) > 2 else 0
-        # c*x^2 + b*x + (a - target) = 0
         A = c
         B = b
         C = a - target
@@ -62,7 +56,6 @@ class Growth(commands.Cog):
             if discriminant < 0:
                 await interaction.response.send_message("No valid predicted date found.")
                 return
-            # Use only the positive solution
             sol1 = (-B + math.sqrt(discriminant)) / (2*A)
             sol2 = (-B - math.sqrt(discriminant)) / (2*A)
             target_date_ordinal = sol1 if sol1 > 0 else sol2
