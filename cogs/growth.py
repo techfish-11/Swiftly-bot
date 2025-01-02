@@ -13,7 +13,6 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
     async def growth(self, interaction: discord.Interaction, target: int):
-        await interaction.response.defer(thinking=True)  # Show "考え中..." to prevent timeout
         guild = interaction.guild
         members = guild.members
 
