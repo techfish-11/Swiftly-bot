@@ -5,6 +5,7 @@ from datetime import datetime
 from sklearn.linear_model import LinearRegression
 import io
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import KFold, cross_val_score
 
 import matplotlib.pyplot as plt
 
@@ -28,14 +29,15 @@ class Growth(commands.Cog):
 
         best_score = float('-inf')
         best_degree = 2
-        for deg in range(1, 5):
+
+        for deg in range(1, 6):
             poly_temp = PolynomialFeatures(degree=deg)
             X_poly_temp = poly_temp.fit_transform(X)
             model_temp = LinearRegression()
-            model_temp.fit(X_poly_temp, y)
-            score = model_temp.score(X_poly_temp, y)
-            if score > best_score:
-                best_score = score
+            scores = cross_val_score(model_temp, X_poly_temp, y, cv=KFold(n_splits=3), scoring='r2')
+            score_mean = scores.mean()
+            if score_mean > best_score:
+                best_score = score_mean
                 best_degree = deg
 
         poly = PolynomialFeatures(degree=best_degree)
