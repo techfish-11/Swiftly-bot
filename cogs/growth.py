@@ -15,6 +15,8 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="Predict the server's growth.")
     async def growth(self, interaction: discord.Interaction, target: int):
+        await interaction.response.defer(thinking=True)  # Show "考え中..." to prevent timeout
+
         guild = interaction.guild
         members = guild.members
 
@@ -22,7 +24,7 @@ class Growth(commands.Cog):
         join_dates.sort()
 
         if len(join_dates) < 2:
-            await interaction.response.send_message("Insufficient data to perform regression analysis.")
+            await interaction.followup.send("Insufficient data to perform regression analysis.")
             return
 
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
@@ -47,21 +49,21 @@ class Growth(commands.Cog):
 
         if abs(A) < 1e-8:  # fallback to linear if c is near zero
             if abs(B) < 1e-8:
-                await interaction.response.send_message("No growth detected.")
+                await interaction.followup.send("No growth detected.")
                 return
             else:
                 target_date_ordinal = -C / B
         else:
             discriminant = B**2 - 4*A*C
             if discriminant < 0:
-                await interaction.response.send_message("No valid predicted date found.")
+                await interaction.followup.send("No valid predicted date found.")
                 return
             sol1 = (-B + math.sqrt(discriminant)) / (2*A)
             sol2 = (-B - math.sqrt(discriminant)) / (2*A)
             target_date_ordinal = sol1 if sol1 > 0 else sol2
 
         if target_date_ordinal <= 0:
-            await interaction.response.send_message("No valid predicted date found.")
+            await interaction.followup.send("No valid predicted date found.")
             return
 
         target_date = datetime.fromordinal(int(round(target_date_ordinal)))
@@ -84,6 +86,6 @@ class Growth(commands.Cog):
         plt.close()
 
         file = discord.File(buf, filename='growth_prediction.png')
-        await interaction.response.send_message(file=file, content=f'Predicted date for reaching {target} members: {target_date.date()}')
+        await interaction.followup.send(file=file, content=f'Predicted date for reaching {target} members: {target_date.date()}')
 async def setup(bot):
     await bot.add_cog(Growth(bot))
