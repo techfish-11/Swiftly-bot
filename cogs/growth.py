@@ -63,7 +63,12 @@ class Growth(commands.Cog):
         plt.close()
 
         file = discord.File(buf, filename='growth_prediction.png')
-        await interaction.response.send_message(file=file, content=f'{target}人に達する予測日: {found_date.date()}')
+        embed = discord.Embed(title="Server Growth Prediction", description=f'{target}人に達する予測日: {found_date.date()}', color=discord.Color.blue())
+        embed.set_image(url="attachment://growth_prediction.png")
+        embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
+        embed.add_field(name="予測精度", value=f"{model.score(X, y):.2f}", inline=True)
+
+        await interaction.response.send_message(embed=embed, file=file)
 
 async def setup(bot):
     await bot.add_cog(Growth(bot))
