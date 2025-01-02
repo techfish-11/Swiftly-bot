@@ -14,7 +14,6 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
     async def growth(self, interaction: discord.Interaction, target: int):
-
         guild = interaction.guild
         members = guild.members
         join_dates = [m.joined_at for m in members if m.joined_at]
@@ -27,12 +26,23 @@ class Growth(commands.Cog):
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
-        poly = PolynomialFeatures(degree=2)
+        best_score = float('-inf')
+        best_degree = 2
+        for deg in range(1, 5):
+            poly_temp = PolynomialFeatures(degree=deg)
+            X_poly_temp = poly_temp.fit_transform(X)
+            model_temp = LinearRegression()
+            model_temp.fit(X_poly_temp, y)
+            score = model_temp.score(X_poly_temp, y)
+            if score > best_score:
+                best_score = score
+                best_degree = deg
+
+        poly = PolynomialFeatures(degree=best_degree)
         X_poly = poly.fit_transform(X)
         model = LinearRegression()
         model.fit(X_poly, y)
 
-        # 目標メンバー数に達する日を探索
         start_day = X[-1][0]
         found_date = None
         for i in range(36500):
