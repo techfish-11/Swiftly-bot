@@ -28,35 +28,28 @@ class Growth(commands.Cog):
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
-        # Time Series Forecasting using ARIMA
-        arima_model = ARIMA(y, order=(5, 1, 0))
-        arima_model_fit = arima_model.fit()
-        arima_forecast = arima_model_fit.forecast(steps=36500)
+        # Linear Regression Model
+        model = LinearRegression()
+        model.fit(X, y)
+        future_days = np.arange(X[-1][0], X[-1][0] + 36500).reshape(-1, 1)
+        predictions = model.predict(future_days)
 
-        start_day = X[-1][0]
-        end_day = start_day + 36500
         found_date = None
-
-        left, right = start_day, end_day
-        while left <= right:
-            mid = (left + right) // 2
-            pred_arima = arima_forecast[mid - start_day] if mid - start_day < len(arima_forecast) else float('inf')
-            if pred_arima >= target:
-                found_date = datetime.fromordinal(int(mid))
-                right = mid - 1
-            else:
-                left = mid + 1
+        for i, pred in enumerate(predictions):
+            if pred >= target:
+                found_date = datetime.fromordinal(int(future_days[i][0]))
+                break
 
         if not found_date:
             await interaction.response.send_message("予測範囲内でその目標値に到達しません。")
             return
 
         X_plot = np.linspace(X[0][0], found_date.toordinal(), 200).reshape(-1, 1)
-        y_plot_arima = arima_model_fit.predict(start=0, end=len(X_plot) - 1)
+        y_plot = model.predict(X_plot)
 
         plt.figure(figsize=(10, 6))
         plt.scatter(join_dates, y, color='blue', label='Actual Data')
-        plt.plot([datetime.fromordinal(int(x[0])) for x in X_plot], y_plot_arima, color='red', label='Prediction')
+        plt.plot([datetime.fromordinal(int(x[0])) for x in X_plot], y_plot, color='red', label='Prediction')
         plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}')
         plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}')
         plt.xlabel('Join Date')
