@@ -28,11 +28,14 @@ class Growth(commands.Cog):
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
-        # Linear Regression Model
+        # Polynomial Regression Model (3rd degree)
+        poly = PolynomialFeatures(degree=3)
+        X_poly = poly.fit_transform(X)
         model = LinearRegression()
-        model.fit(X, y)
+        model.fit(X_poly, y)
         future_days = np.arange(X[-1][0], X[-1][0] + 36500).reshape(-1, 1)
-        predictions = model.predict(future_days)
+        future_days_poly = poly.transform(future_days)
+        predictions = model.predict(future_days_poly)
 
         found_date = None
         for i, pred in enumerate(predictions):
@@ -45,7 +48,8 @@ class Growth(commands.Cog):
             return
 
         X_plot = np.linspace(X[0][0], found_date.toordinal(), 200).reshape(-1, 1)
-        y_plot = model.predict(X_plot)
+        X_plot_poly = poly.transform(X_plot)
+        y_plot = model.predict(X_plot_poly)
 
         plt.figure(figsize=(12, 8))
         plt.scatter(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
@@ -67,9 +71,8 @@ class Growth(commands.Cog):
         embed = discord.Embed(title="Server Growth Prediction", description=f'{target}人に達する予測日: {found_date.date()}', color=discord.Color.blue())
         embed.set_image(url="attachment://growth_prediction.png")
         embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
-        embed.add_field(name="予測精度", value=f"{model.score(X, y):.2f}", inline=True)
+        embed.add_field(name="予測精度", value=f"{model.score(X_poly, y):.2f}", inline=True)
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
-        
 
         await interaction.response.send_message(embed=embed, file=file)
 
