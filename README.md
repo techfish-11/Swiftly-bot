@@ -1,6 +1,8 @@
 # Swiftly-bot
 Swiftly, a multi-function Discord bot
 
+![Swiftly Icon](https://sakana11.org/public/swiftly-icon.png)
+
 ## Swiftlyのコマンド一覧
 以下はSwiftlyが提供するコマンドとその説明です。
 
