@@ -15,11 +15,18 @@ class BotAdmin(commands.Cog):
             embed = discord.Embed(title="参加中のサーバー", description=", ".join(servers), color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, ephemeral=True)
         elif option == "debug":
+            cogs = ", ".join(self.bot.cogs.keys())
+            shard_info = (
+                f"Shard ID: {self.bot.shard_id}\n"
+                f"Shard Count: {self.bot.shard_count}\n"
+            ) if self.bot.shard_id is not None else "Sharding is not enabled."
             debug_info = (
                 f"Bot Name: {self.bot.user.name}\n"
                 f"Bot ID: {self.bot.user.id}\n"
                 f"Latency: {self.bot.latency * 1000:.2f} ms\n"
-                f"Guild Count: {len(self.bot.guilds)}"
+                f"Guild Count: {len(self.bot.guilds)}\n"
+                f"Loaded Cogs: {cogs}\n"
+                f"{shard_info}"
             )
             embed = discord.Embed(title="デバッグ情報", description=debug_info, color=discord.Color.green())
             await interaction.response.send_message(embed=embed, ephemeral=True)
