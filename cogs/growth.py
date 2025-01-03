@@ -74,6 +74,9 @@ class Growth(commands.Cog):
         embed.set_image(url="attachment://growth_prediction.png")
         embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
         embed.add_field(name="予測精度", value=f"{model.score(X_poly, y):.2f}", inline=True)
+        embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
+        embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
+        embed.add_field(name="予測モデル", value="3次多項式回帰", inline=True)
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
         await interaction.followup.send(embed=embed, file=file)
