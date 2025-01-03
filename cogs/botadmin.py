@@ -1,0 +1,31 @@
+import discord
+from discord.ext import commands
+
+class BotAdmin(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def cog_check(self, ctx):
+        return ctx.author.id == 1241397634095120438
+
+    @discord.app_commands.command(name="botadmin", description="Bot管理コマンド")
+    async def botadmin_command(self, interaction: discord.Interaction, option: str):
+        if option == "servers":
+            servers = [guild.name for guild in self.bot.guilds]
+            embed = discord.Embed(title="参加中のサーバー", description=", ".join(servers), color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        elif option == "debug":
+            debug_info = (
+                f"Bot Name: {self.bot.user.name}\n"
+                f"Bot ID: {self.bot.user.id}\n"
+                f"Latency: {self.bot.latency * 1000:.2f} ms\n"
+                f"Guild Count: {len(self.bot.guilds)}"
+            )
+            embed = discord.Embed(title="デバッグ情報", description=debug_info, color=discord.Color.green())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            embed = discord.Embed(title="エラー", description="無効なオプションです。", color=discord.Color.red())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+async def setup(bot):
+    await bot.add_cog(BotAdmin(bot))
