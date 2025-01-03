@@ -16,13 +16,15 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
     async def growth(self, interaction: discord.Interaction, target: int):
+        await interaction.response.defer(thinking=True)
+        
         guild = interaction.guild
         members = guild.members
         join_dates = [m.joined_at for m in members if m.joined_at]
         join_dates.sort()
 
         if len(join_dates) < 2:
-            await interaction.response.send_message("回帰分析を行うためのデータが不足しています。")
+            await interaction.followup.send("回帰分析を行うためのデータが不足しています。")
             return
 
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
@@ -44,7 +46,7 @@ class Growth(commands.Cog):
                 break
 
         if not found_date:
-            await interaction.response.send_message("予測範囲内でその目標値に到達しません。")
+            await interaction.followup.send("予測範囲内でその目標値に到達しません。")
             return
 
         X_plot = np.linspace(X[0][0], found_date.toordinal(), 200).reshape(-1, 1)
@@ -74,7 +76,7 @@ class Growth(commands.Cog):
         embed.add_field(name="予測精度", value=f"{model.score(X_poly, y):.2f}", inline=True)
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.followup.send(embed=embed, file=file)
 
 async def setup(bot):
     await bot.add_cog(Growth(bot))
