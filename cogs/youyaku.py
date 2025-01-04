@@ -17,11 +17,11 @@ class Youyaku(commands.Cog):
             message_contents = [message.content for message in messages if message.content]
 
             if not message_contents:
-                await interaction.followup.send("No messages found to summarize.")
+                await interaction.followup.send("要約するメッセージが見つかりませんでした。")
                 return
 
-            # Create the TF-IDF Vectorizer
-            vectorizer = TfidfVectorizer(stop_words='english')
+            # Create the TF-IDF Vectorizer with Japanese stop words
+            vectorizer = TfidfVectorizer(stop_words='japanese')
             X = vectorizer.fit_transform(message_contents)
 
             # Get the highest scoring message
@@ -29,12 +29,12 @@ class Youyaku(commands.Cog):
             top_message_index = scores.argmax()
             summary = message_contents[top_message_index]
 
-            embed = discord.Embed(title=f"Summary of the last {num_messages} messages", description=summary, color=discord.Color.blue())
+            embed = discord.Embed(title=f"直近の{num_messages}件のメッセージの要約", description=summary, color=discord.Color.blue())
             await interaction.followup.send(embed=embed)
         except discord.DiscordException as e:
-            await interaction.followup.send(f"An error occurred with Discord: {str(e)}")
+            await interaction.followup.send(f"Discordでエラーが発生しました: {str(e)}")
         except Exception as e:
-            await interaction.followup.send(f"An unexpected error occurred: {str(e)}")
+            await interaction.followup.send(f"予期しないエラーが発生しました: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(Youyaku(bot))
