@@ -7,9 +7,9 @@ class Youyaku(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='youyaku', description='指定したチャンネルのメッセージを要約します。')
-    async def youyaku(self, ctx, channel: discord.TextChannel, num_messages: int = 100):
-        await ctx.defer()
+    @discord.app_commands.command(name='youyaku', description='指定したチャンネルのメッセージを要約します。')
+    async def youyaku(self, interaction: discord.Interaction, channel: discord.TextChannel, num_messages: int = 100):
+        await interaction.response.defer()
 
         try:
             # Fetch the message history
@@ -17,7 +17,7 @@ class Youyaku(commands.Cog):
             message_contents = [message.content for message in messages if message.content]
 
             if not message_contents:
-                await ctx.send("No messages found to summarize.")
+                await interaction.followup.send("No messages found to summarize.")
                 return
 
             # Create the TF-IDF Vectorizer
@@ -30,11 +30,11 @@ class Youyaku(commands.Cog):
             summary = message_contents[top_message_index]
 
             embed = discord.Embed(title=f"Summary of the last {num_messages} messages", description=summary, color=discord.Color.blue())
-            await ctx.send(embed=embed)
+            await interaction.followup.send(embed=embed)
         except discord.DiscordException as e:
-            await ctx.send(f"An error occurred with Discord: {str(e)}")
+            await interaction.followup.send(f"An error occurred with Discord: {str(e)}")
         except Exception as e:
-            await ctx.send(f"An unexpected error occurred: {str(e)}")
+            await interaction.followup.send(f"An unexpected error occurred: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(Youyaku(bot))
