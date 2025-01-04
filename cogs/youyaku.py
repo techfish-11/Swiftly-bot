@@ -9,6 +9,10 @@ class Youyaku(commands.Cog):
 
     @discord.app_commands.command(name='youyaku', description='指定したチャンネルのメッセージを要約します。')
     async def youyaku(self, interaction: discord.Interaction, channel: discord.TextChannel, num_messages: int = 100):
+        if num_messages > 1000:
+            await interaction.response.send_message("num_messagesの上限は1000です。", ephemeral=True)
+            return
+
         await interaction.response.defer(thinking=True)
 
         try:
