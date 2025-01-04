@@ -21,8 +21,8 @@ class Youyaku(commands.Cog):
 
             # Create the TF-IDF Vectorizer with Japanese stop words
             japanese_stop_words = ["の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる", "も", "する", "から", "な", "こと", "として", "い", "や", "れる", "など", "なっ", "ない", "この", "ため", "その", "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ", "なる", "へ", "か", "だ", "これ", "によって", "により", "おり", "より", "による", "ず", "なり", "られる"]
-            vectorizer = TfidfVectorizer(stop_words=japanese_stop_words)
             vectorizer = TfidfVectorizer(stop_words=japanese_stop_words if isinstance(japanese_stop_words, list) else None)
+            X = vectorizer.fit_transform(message_contents)
 
             # Get the highest scoring message
             scores = X.sum(axis=1).A1
