@@ -33,7 +33,8 @@ class Youyaku(commands.Cog):
 
             # Get the most common words
             most_common_words = word_counts.most_common(10)
-            summary = ' '.join([word for word, count in most_common_words])
+            summary_list = [f"{word}: {count}" for word, count in most_common_words]
+            summary = '\n'.join(summary_list)
 
             embed = discord.Embed(title=f"直近の{num_messages}件のメッセージの要約", description=summary, color=discord.Color.blue())
             await interaction.followup.send(embed=embed)
