@@ -26,7 +26,7 @@ class Base64(commands.Cog):
                 # デコード結果に @everyone やメンションが含まれているかをチェック
                 # @everyone とユーザーIDメンション (<@1234567890>) の検出
                 if '@everyone' in decoded or re.search(r'<@!?(\d+)>', decoded) or re.search(r'<@&(\d+)>', decoded):
-                    await interaction.response.send_message("デコード結果に アットeveryone やメンション、役職メンションが含まれているため、デコードを拒否しました。")
+                    await interaction.response.send_message("デコード結果に、@ everyone やメンション、役職メンションが含まれているため、デコードを拒否しました。")
                     return
 
                 await interaction.response.send_message(f"デコード結果: {decoded}")
