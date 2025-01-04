@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from sklearn.feature_extraction.text import TfidfVectorizer
+from collections import Counter
+import re
 
 class Youyaku(commands.Cog):
     def __init__(self, bot):
@@ -19,15 +20,20 @@ class Youyaku(commands.Cog):
                 await interaction.followup.send("要約するメッセージが見つかりませんでした。")
                 return
 
-            # Create the TF-IDF Vectorizer with Japanese stop words
-            japanese_stop_words = ["の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる", "も", "する", "から", "な", "こと", "として", "い", "や", "れる", "など", "なっ", "ない", "この", "ため", "その", "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ", "なる", "へ", "か", "だ", "これ", "によって", "により", "おり", "より", "による", "ず", "なり", "られる"]
-            vectorizer = TfidfVectorizer(stop_words=japanese_stop_words if isinstance(japanese_stop_words, list) else None)
-            X = vectorizer.fit_transform(message_contents)
+            # Combine all messages into a single text
+            combined_text = ' '.join(message_contents)
 
-            # Get the highest scoring message
-            scores = X.sum(axis=1).A1
-            top_message_index = scores.argmax()
-            summary = message_contents[top_message_index]
+            # Tokenize the text and remove stop words
+            japanese_stop_words = ["の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる", "も", "する", "から", "な", "こと", "として", "い", "や", "れる", "など", "なっ", "ない", "この", "ため", "その", "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ", "なる", "へ", "か", "だ", "これ", "によって", "により", "おり", "より", "による", "ず", "なり", "られる"]
+            words = re.findall(r'\b\w+\b', combined_text)
+            filtered_words = [word for word in words if word not in japanese_stop_words]
+
+            # Count the frequency of each word
+            word_counts = Counter(filtered_words)
+
+            # Get the most common words
+            most_common_words = word_counts.most_common(10)
+            summary = ' '.join([word for word, count in most_common_words])
 
             embed = discord.Embed(title=f"直近の{num_messages}件のメッセージの要約", description=summary, color=discord.Color.blue())
             await interaction.followup.send(embed=embed)
