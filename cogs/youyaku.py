@@ -7,29 +7,34 @@ class Youyaku(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name='youyaku', description='指定したチャンネルのメッセージを要約します。')
-    async def youyaku(self, interaction: discord.Interaction, channel: discord.TextChannel, num_messages: int = 100):
-        await interaction.response.defer(thinking=True)
-        
-        # Fetch the message history
-        messages = await channel.history(limit=num_messages).flatten()
-        message_contents = [message.content for message in messages if message.content]
+    @commands.command(name='youyaku', description='指定したチャンネルのメッセージを要約します。')
+    async def youyaku(self, ctx, channel: discord.TextChannel, num_messages: int = 100):
+        await ctx.defer()
 
-        if not message_contents:
-            await interaction.followup.send("No messages found to summarize.")
-            return
+        try:
+            # Fetch the message history
+            messages = await channel.history(limit=num_messages).flatten()
+            message_contents = [message.content for message in messages if message.content]
 
-        # Create the TF-IDF Vectorizer
-        vectorizer = TfidfVectorizer(stop_words='english')
-        X = vectorizer.fit_transform(message_contents)
+            if not message_contents:
+                await ctx.send("No messages found to summarize.")
+                return
 
-        # Get the highest scoring message
-        scores = X.sum(axis=1).A1
-        top_message_index = scores.argmax()
-        summary = message_contents[top_message_index]
+            # Create the TF-IDF Vectorizer
+            vectorizer = TfidfVectorizer(stop_words='english')
+            X = vectorizer.fit_transform(message_contents)
 
-        embed = discord.Embed(title=f"Summary of the last {num_messages} messages", description=summary, color=discord.Color.blue())
-        await interaction.followup.send(embed=embed)
+            # Get the highest scoring message
+            scores = X.sum(axis=1).A1
+            top_message_index = scores.argmax()
+            summary = message_contents[top_message_index]
+
+            embed = discord.Embed(title=f"Summary of the last {num_messages} messages", description=summary, color=discord.Color.blue())
+            await ctx.send(embed=embed)
+        except discord.DiscordException as e:
+            await ctx.send(f"An error occurred with Discord: {str(e)}")
+        except Exception as e:
+            await ctx.send(f"An unexpected error occurred: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(Youyaku(bot))
