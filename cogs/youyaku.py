@@ -9,11 +9,11 @@ class Youyaku(commands.Cog):
 
     @discord.app_commands.command(name='youyaku', description='指定したチャンネルのメッセージを要約します。')
     async def youyaku(self, interaction: discord.Interaction, channel: discord.TextChannel, num_messages: int = 100):
-        await interaction.response.defer()
+        await interaction.response.defer(thinking=True)
 
         try:
             # Fetch the message history
-            messages = await channel.history(limit=num_messages).flatten()
+            messages = [message async for message in channel.history(limit=num_messages)]
             message_contents = [message.content for message in messages if message.content]
 
             if not message_contents:
