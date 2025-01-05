@@ -16,7 +16,6 @@ class Youyaku(commands.Cog):
         await interaction.response.defer(thinking=True)
 
         try:
-            # Fetch the message history
             messages = [message async for message in channel.history(limit=num_messages)]
             message_contents = [message.content for message in messages if message.content]
 
@@ -24,21 +23,21 @@ class Youyaku(commands.Cog):
                 await interaction.followup.send("要約するメッセージが見つかりませんでした。")
                 return
 
-            # Combine all messages into a single text
             combined_text = ' '.join(message_contents)
-
-            # Tokenize the text and remove stop words
             japanese_stop_words = ["の", "に", "は", "を", "た", "が", "で", "て", "と", "し", "れ", "さ", "ある", "いる", "も", "する", "から", "な", "こと", "として", "い", "や", "れる", "など", "なっ", "ない", "この", "ため", "その", "あっ", "よう", "また", "もの", "という", "あり", "まで", "られ", "なる", "へ", "か", "だ", "これ", "によって", "により", "おり", "より", "による", "ず", "なり", "られる"]
             words = re.findall(r'\b\w+\b', combined_text)
-            filtered_words = [word for word in words if word not in japanese_stop_words]
-
-            # Count the frequency of each word
+            filtered_words = [w for w in words if w not in japanese_stop_words]
             word_counts = Counter(filtered_words)
 
-            # Get the most common words
-            most_common_words = word_counts.most_common(10)
-            summary_list = [f"{word}: {count}" for word, count in most_common_words]
-            summary = '\n'.join(summary_list)
+            sentences = re.split(r'[。！？.!?]', combined_text)
+            def sentence_score(sentence):
+                sw = re.findall(r'\b\w+\b', sentence)
+                return sum(word_counts.get(w, 0) for w in sw)
+
+            scored = [(s, sentence_score(s)) for s in sentences if s.strip()]
+            scored.sort(key=lambda x: x[1], reverse=True)
+            top_sentences = [s for s, _ in scored[:5]]
+            summary = '。'.join(top_sentences)
 
             embed = discord.Embed(title=f"直近の{num_messages}件のメッセージの要約", description=summary, color=discord.Color.blue())
             await interaction.followup.send(embed=embed)
