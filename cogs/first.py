@@ -14,7 +14,8 @@ class FirstComment(commands.Cog):
                 first_message = message
                 break
             if first_message:
-                await interaction.response.send_message(f"このチャンネルの最初のメッセージ: {first_message.jump_url}")
+                embed = discord.Embed(title="最初のメッセージ", description=f"[こちら]({first_message.jump_url}) をクリックして最初のメッセージに移動します。", color=discord.Color.blue())
+                await interaction.response.send_message(embed=embed)
             else:
                 await interaction.response.send_message("このチャンネルにはメッセージが見つかりませんでした。")
         except Exception as e:
