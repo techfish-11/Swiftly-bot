@@ -27,9 +27,7 @@ class Growth(commands.Cog):
             await interaction.followup.send("回帰分析を行うためのデータが不足しています。")
             return
 
-        # 日次データを作成
         start_date, end_date = join_dates[0].date(), join_dates[-1].date()
-        date_range = [start_date + (datetime.min - datetime.min) for _ in range((end_date - start_date).days + 1)]
         daily_counts = []
         idx = 0
         for d in range((end_date - start_date).days + 1):
@@ -38,20 +36,17 @@ class Growth(commands.Cog):
                 idx += 1
             daily_counts.append(idx)
 
-        # ARIMAを使用した将来予測
         model = ARIMA(daily_counts, order=(1,1,1))
         results = model.fit()
         forecast_days = 365
         forecast = results.forecast(steps=forecast_days)
         
-        # 目標到達日を探索
         found_date_arima = None
         for i, val in enumerate(forecast, 1):
             if val >= target:
                 found_date_arima = end_date + np.timedelta64(i, 'D')
                 break
         
-        # 既存の多項式回帰も実行
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
         poly = PolynomialFeatures(degree=3)
@@ -71,7 +66,29 @@ class Growth(commands.Cog):
             await interaction.followup.send("予測範囲内でその目標値に到達しません。")
             return
 
-        # 結果表示
+        plt.figure()
+        plt.plot(range(len(daily_counts)), daily_counts, label='Observed Data')
+        plt.plot(range(len(daily_counts), len(daily_counts)+forecast_days), forecast, label='ARIMA Forecast')
+        plt.legend()
+        plt.title('ARIMA Prediction')
+        buf_arima = io.BytesIO()
+        plt.savefig(buf_arima, format='png')
+        buf_arima.seek(0)
+        plt.close()
+
+        plt.figure()
+        plt.scatter(X, y, label='Original Data', alpha=0.5)
+        plt.plot(future_days, predictions, label='Polynomial Forecast', color='red')
+        plt.legend()
+        plt.title('Polynomial Regression Prediction')
+        buf_poly = io.BytesIO()
+        plt.savefig(buf_poly, format='png')
+        buf_poly.seek(0)
+        plt.close()
+
+        file_arima = discord.File(buf_arima, filename='arima.png')
+        file_poly = discord.File(buf_poly, filename='poly.png')
+
         embed = discord.Embed(title="Server Growth Prediction", color=discord.Color.blue())
         if found_date_arima:
             embed.add_field(name="ARIMA予測到達日", value=str(found_date_arima), inline=True)
@@ -81,7 +98,7 @@ class Growth(commands.Cog):
         embed.add_field(name="ARIMAモデル", value=str(results.aic), inline=True)
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
-        await interaction.followup.send(embed=embed)
+        await interaction.followup.send(embed=embed, files=[file_arima, file_poly])
 
 async def setup(bot):
     await bot.add_cog(Growth(bot))
