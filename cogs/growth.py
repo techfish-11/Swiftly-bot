@@ -7,6 +7,7 @@ import io
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold, cross_val_score
 from statsmodels.tsa.arima.model import ARIMA
+import pandas as pd
 
 import matplotlib.pyplot as plt
 
@@ -16,89 +17,82 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
     async def growth(self, interaction: discord.Interaction, target: int):
-        await interaction.response.defer(thinking=True)
         
+        await interaction.response.defer(thinking=True)
         guild = interaction.guild
         members = guild.members
         join_dates = [m.joined_at for m in members if m.joined_at]
         join_dates.sort()
 
         if len(join_dates) < 2:
-            await interaction.followup.send("回帰分析を行うためのデータが不足しています。")
+            await interaction.followup.send("ARIMAを実行するためのデータが不足しています。")
             return
 
-        start_date, end_date = join_dates[0].date(), join_dates[-1].date()
-        daily_counts = []
+        earliest = join_dates[0].date()
+        latest = join_dates[-1].date()
+        date_range = pd.date_range(start=earliest, end=latest, freq='D')
+
+        count = 0
         idx = 0
-        for d in range((end_date - start_date).days + 1):
-            current_day = start_date + np.timedelta64(d, 'D')
-            while idx < len(join_dates) and join_dates[idx].date() <= current_day:
+        daily_counts = {}
+        for day in date_range:
+            while idx < len(join_dates) and join_dates[idx].date() == day:
+                count += 1
                 idx += 1
-            daily_counts.append(idx)
+            daily_counts[day] = count
 
-        model = ARIMA(daily_counts, order=(1,1,1))
-        results = model.fit()
-        forecast_days = 365
-        forecast = results.forecast(steps=forecast_days)
-        
-        found_date_arima = None
-        for i, val in enumerate(forecast, 1):
+        ts = pd.Series(daily_counts)
+        model = ARIMA(ts, order=(1,1,1))
+        result = model.fit()
+
+        forecast_days = 36500
+        forecast_index = pd.date_range(start=latest + pd.Timedelta(days=1), periods=forecast_days, freq='D')
+        forecast_vals = result.forecast(steps=forecast_days)
+
+        found_date = None
+        for i, val in enumerate(forecast_vals):
             if val >= target:
-                found_date_arima = end_date + np.timedelta64(i, 'D')
-                break
-        
-        X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
-        y = np.arange(1, len(join_dates) + 1)
-        poly = PolynomialFeatures(degree=3)
-        X_poly = poly.fit_transform(X)
-        lin_model = LinearRegression()
-        lin_model.fit(X_poly, y)
-        future_days = np.arange(X[-1][0], X[-1][0] + 36500).reshape(-1, 1)
-        future_days_poly = poly.transform(future_days)
-        predictions = lin_model.predict(future_days_poly)
-        found_date_poly = None
-        for i, pred in enumerate(predictions):
-            if pred >= target:
-                found_date_poly = datetime.fromordinal(int(future_days[i][0]))
+                found_date = forecast_index[i]
                 break
 
-        if not found_date_arima and not found_date_poly:
+        if not found_date:
             await interaction.followup.send("予測範囲内でその目標値に到達しません。")
             return
 
-        plt.figure()
-        plt.plot(range(len(daily_counts)), daily_counts, label='Observed Data')
-        plt.plot(range(len(daily_counts), len(daily_counts)+forecast_days), forecast, label='ARIMA Forecast')
+        # Plot
+        full_index = ts.index.append(forecast_index)
+        full_values = ts.append(forecast_vals)
+        plt.figure(figsize=(12,8))
+        plt.plot(ts.index, ts.values, label='Actual', color='blue')
+        plt.plot(full_index, full_values, label='Forecast', color='red')
+        plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
+        plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
+        plt.xlabel('Date')
+        plt.ylabel('Member Count')
+        plt.title('Server Growth Prediction (ARIMA)')
         plt.legend()
-        plt.title('ARIMA Prediction')
-        buf_arima = io.BytesIO()
-        plt.savefig(buf_arima, format='png')
-        buf_arima.seek(0)
+        plt.grid(True, linestyle='--', alpha=0.7)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
         plt.close()
 
-        plt.figure()
-        plt.scatter(X, y, label='Original Data', alpha=0.5)
-        plt.plot(future_days, predictions, label='Polynomial Forecast', color='red')
-        plt.legend()
-        plt.title('Polynomial Regression Prediction')
-        buf_poly = io.BytesIO()
-        plt.savefig(buf_poly, format='png')
-        buf_poly.seek(0)
-        plt.close()
-
-        file_arima = discord.File(buf_arima, filename='arima.png')
-        file_poly = discord.File(buf_poly, filename='poly.png')
-
-        embed = discord.Embed(title="Server Growth Prediction", color=discord.Color.blue())
-        if found_date_arima:
-            embed.add_field(name="ARIMA予測到達日", value=str(found_date_arima), inline=True)
-        if found_date_poly:
-            embed.add_field(name="多項式回帰予測到達日", value=str(found_date_poly.date()), inline=True)
+        file = discord.File(buf, filename='growth_prediction.png')
+        embed = discord.Embed(
+            title="Server Growth Prediction",
+            description=f'{target}人に達する予測日: {found_date.date()}',
+            color=discord.Color.blue()
+        )
+        embed.set_image(url="attachment://growth_prediction.png")
         embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
-        embed.add_field(name="ARIMAモデル", value=str(results.aic), inline=True)
+        embed.add_field(name="予測精度(AIC)", value=f"{result.aic:.2f}", inline=True)
+        embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
+        embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
+        embed.add_field(name="予測モデル", value="ARIMA(1,1,1)", inline=True)
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
-        await interaction.followup.send(embed=embed, files=[file_arima, file_poly])
+        await interaction.followup.send(embed=embed, file=file)
 
 async def setup(bot):
     await bot.add_cog(Growth(bot))
