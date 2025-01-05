@@ -64,11 +64,6 @@ class Growth(commands.Cog):
         plt.legend()
         plt.grid(True, linestyle='--', alpha=0.7)
 
-        # Improved design
-        plt.style.use('seaborn-darkgrid')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         buf.seek(0)
