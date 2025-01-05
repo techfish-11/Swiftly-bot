@@ -7,7 +7,6 @@ import io
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold, cross_val_score
 from statsmodels.tsa.arima.model import ARIMA
-import pandas as pd
 
 import matplotlib.pyplot as plt
 
@@ -17,59 +16,44 @@ class Growth(commands.Cog):
 
     @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
     async def growth(self, interaction: discord.Interaction, target: int):
-        
         await interaction.response.defer(thinking=True)
+        
         guild = interaction.guild
         members = guild.members
         join_dates = [m.joined_at for m in members if m.joined_at]
         join_dates.sort()
 
         if len(join_dates) < 2:
-            await interaction.followup.send("ARIMAを実行するためのデータが不足しています。")
+            await interaction.followup.send("回帰分析を行うためのデータが不足しています。")
             return
 
-        earliest = join_dates[0].date()
-        latest = join_dates[-1].date()
-        date_range = pd.date_range(start=earliest, end=latest, freq='D')
+        X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
+        y = np.arange(1, len(join_dates) + 1)
 
-        count = 0
-        idx = 0
-        daily_counts = {}
-        for day in date_range:
-            while idx < len(join_dates) and join_dates[idx].date() == day:
-                count += 1
-                idx += 1
-            daily_counts[day] = count
-
-        ts = pd.Series(daily_counts)
-        model = ARIMA(ts, order=(1,1,1))
-        result = model.fit()
-
-        forecast_days = 36500
-        forecast_index = pd.date_range(start=latest + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        forecast_vals = result.forecast(steps=forecast_days)
+        # ARIMA Model
+        model = ARIMA(y, order=(5, 1, 0))
+        model_fit = model.fit(disp=0)
+        future_steps = 365
+        forecast = model_fit.forecast(steps=future_steps)[0]
 
         found_date = None
-        for i, val in enumerate(forecast_vals):
-            if val >= target:
-                found_date = forecast_index[i]
+        for i, pred in enumerate(forecast):
+            if pred >= target:
+                found_date = datetime.fromordinal(int(X[-1][0] + i))
                 break
 
         if not found_date:
             await interaction.followup.send("予測範囲内でその目標値に到達しません。")
             return
 
-        # Plot
-        full_index = ts.index.append(forecast_index)
-        full_values = ts.append(forecast_vals)
-        plt.figure(figsize=(12,8))
-        plt.plot(ts.index, ts.values, label='Actual', color='blue')
-        plt.plot(full_index, full_values, label='Forecast', color='red')
+        plt.figure(figsize=(12, 8))
+        plt.plot(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
+        plt.plot([datetime.fromordinal(int(X[-1][0] + i)) for i in range(future_steps)], forecast, color='red', label='Prediction', linewidth=2)
         plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
         plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
-        plt.xlabel('Date')
-        plt.ylabel('Member Count')
-        plt.title('Server Growth Prediction (ARIMA)')
+        plt.xlabel('Join Date', fontsize=14)
+        plt.ylabel('Member Count', fontsize=14)
+        plt.title('Server Growth Prediction', fontsize=16)
         plt.legend()
         plt.grid(True, linestyle='--', alpha=0.7)
 
@@ -79,17 +63,16 @@ class Growth(commands.Cog):
         plt.close()
 
         file = discord.File(buf, filename='growth_prediction.png')
-        embed = discord.Embed(
-            title="Server Growth Prediction",
-            description=f'{target}人に達する予測日: {found_date.date()}',
-            color=discord.Color.blue()
-        )
+        embed = discord.Embed(title="Server Growth Prediction", description=f'{target}人に達する予測日: {found_date.date()}', color=discord.Color.blue())
         embed.set_image(url="attachment://growth_prediction.png")
         embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
-        embed.add_field(name="予測精度(AIC)", value=f"{result.aic:.2f}", inline=True)
+        embed.add_field(name="予測精度 (AIC)", value=f"{model_fit.aic:.2f}", inline=True)
         embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
         embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
-        embed.add_field(name="予測モデル", value="ARIMA(1,1,1)", inline=True)
+        embed.add_field(name="予測モデル", value="ARIMA", inline=True)
+        embed.add_field(name="予測範囲", value=f"{future_steps}日", inline=True)
+        embed.add_field(name="目標値", value=str(target), inline=True)
+        embed.add_field(name="予測された日付", value=found_date.strftime('%Y-%m-%d'), inline=True)
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
         await interaction.followup.send(embed=embed, file=file)
