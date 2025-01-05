@@ -59,6 +59,7 @@ class Growth(commands.Cog):
         
         # Set y-axis limit slightly above the target
         plt.ylim(0, target + target * 0.1)
+        plt.xlim(join_dates[0], join_dates[-1] + (join_dates[-1] - join_dates[0]) * 0.1)
 
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
