@@ -56,6 +56,9 @@ class Growth(commands.Cog):
         plt.title('Server Growth Prediction', fontsize=16)
         plt.legend()
         plt.grid(True, linestyle='--', alpha=0.7)
+        
+        # Set y-axis limit slightly above the target
+        plt.ylim(0, target + target * 0.1)
 
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
