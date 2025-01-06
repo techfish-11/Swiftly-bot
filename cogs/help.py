@@ -58,7 +58,7 @@ class GrowthHelp(commands.Cog):
         )
 
 
-        embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
+        embed.set_footer(text="Hosted by TechFish_Lab")
 
         await interaction.response.send_message(embed=embed)
 
