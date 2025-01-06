@@ -52,7 +52,7 @@ class GrowthHelp(commands.Cog):
                 "- Wikipediaでものを検索できます。\n"
                 "- 曖昧なページも検索できます。\n"
                 "\n\n"
-                "ほかにもあります。"
+                "ほかにもあります。/command-listで確認してください。"
             ),
             inline=False
         )
