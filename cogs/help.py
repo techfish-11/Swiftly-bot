@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-class GrowthHelp(commands.Cog):
+class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -63,4 +63,4 @@ class GrowthHelp(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(GrowthHelp(bot))
+    await bot.add_cog(Help(bot))
