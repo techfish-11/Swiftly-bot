@@ -28,10 +28,23 @@ class ARIMAGrowth(commands.Cog):
         X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
         y = np.arange(1, len(join_dates) + 1)
 
-        # ARIMA Model
-        model = ARIMA(y, order=(5, 1, 0))
+        # Grid search for better (p, d, q) based on AIC
+        best_order = (5, 1, 0)
+        best_aic = None
+        for p in range(6):
+            for d in range(3):
+                for q in range(6):
+                    try:
+                        temp_model = ARIMA(y, order=(p, d, q))
+                        temp_fit = temp_model.fit()
+                        if best_aic is None or temp_fit.aic < best_aic:
+                            best_aic = temp_fit.aic
+                            best_order = (p, d, q)
+                    except:
+                        pass
+
+        model = ARIMA(y, order=best_order)
         model_fit = model.fit()
-        future_days = np.arange(len(y), len(y) + 365)
         predictions = model_fit.forecast(steps=365)
 
         found_date = None
@@ -46,7 +59,8 @@ class ARIMAGrowth(commands.Cog):
 
         plt.figure(figsize=(12, 8))
         plt.scatter(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
-        plt.plot([datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))], predictions, color='red', label='Prediction', linewidth=2)
+        plt.plot([datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))],
+                 predictions, color='red', label='Prediction', linewidth=2)
         plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
         plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
         plt.xlabel('Join Date', fontsize=14)
@@ -61,10 +75,15 @@ class ARIMAGrowth(commands.Cog):
         plt.close()
 
         file = discord.File(buf, filename='arima_growth_prediction.png')
-        embed = discord.Embed(title="Server Growth Prediction (ARIMA)", description=f'{target}人に達する予測日: {found_date.date()}', color=discord.Color.blue())
+        embed = discord.Embed(
+            title="Server Growth Prediction (ARIMA)",
+            description=f'{target}人に達する予測日: {found_date.date()}',
+            color=discord.Color.blue()
+        )
         embed.set_image(url="attachment://arima_growth_prediction.png")
         embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
-        embed.add_field(name="予測精度", value=f"{model_fit.aic:.2f}", inline=True)
+        embed.add_field(name="最適パラメータ", value=str(best_order), inline=True)
+        embed.add_field(name="AIC", value=f"{model_fit.aic:.2f}", inline=True)
         embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
         embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
         embed.add_field(name="予測モデル", value="ARIMA", inline=True)
