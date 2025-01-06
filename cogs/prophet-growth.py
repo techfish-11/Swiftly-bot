@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import numpy as np
 from datetime import datetime
-from fbprophet import Prophet
+from prophet import Prophet
 import io
 
 import matplotlib.pyplot as plt
