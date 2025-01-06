@@ -29,19 +29,19 @@ class ARIMAGrowth(commands.Cog):
             X = np.array([d.toordinal() for d in join_dates]).reshape(-1, 1)
             y = np.arange(1, len(join_dates) + 1)
 
-            best_order = (5, 1, 0)
-            best_aic = None
-            for p in range(6):
-                for d in range(3):
-                    for q in range(6):
-                        try:
-                            temp_model = ARIMA(y, order=(p, d, q))
-                            temp_fit = temp_model.fit()
-                            if best_aic is None or temp_fit.aic < best_aic:
-                                best_aic = temp_fit.aic
-                                best_order = (p, d, q)
-                        except:
-                            pass
+            # Narrow down the search space for ARIMA parameters to reduce resource usage
+            possible_orders = [(0, 1, 0), (1, 1, 0), (1, 1, 1), (2, 1, 0)]
+            best_order = None
+            best_aic = float('inf')
+            for order in possible_orders:
+                try:
+                    temp_model = ARIMA(y, order=order)
+                    temp_fit = temp_model.fit()
+                    if temp_fit.aic < best_aic:
+                        best_aic = temp_fit.aic
+                        best_order = order
+                except:
+                    pass
 
             model = ARIMA(y, order=best_order)
             model_fit = model.fit()
@@ -57,15 +57,15 @@ class ARIMAGrowth(commands.Cog):
                 await interaction.followup.send("予測範囲内でその目標値に到達しません。")
                 return
 
-            plt.figure(figsize=(12, 8))
+            plt.figure(figsize=(8, 5))
             plt.scatter(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
-            plt.plot([datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))],
-                    predictions, color='red', label='Prediction', linewidth=2)
+            pred_dates = [datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))]
+            plt.plot(pred_dates, predictions, color='red', label='Prediction', linewidth=2)
             plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
             plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
-            plt.xlabel('Join Date', fontsize=14)
-            plt.ylabel('Member Count', fontsize=14)
-            plt.title('Server Growth Prediction (ARIMA)', fontsize=16)
+            plt.xlabel('Join Date')
+            plt.ylabel('Member Count')
+            plt.title('Server Growth Prediction (ARIMA)')
             plt.legend()
             plt.grid(True, linestyle='--', alpha=0.7)
 
