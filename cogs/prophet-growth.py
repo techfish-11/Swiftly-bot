@@ -45,6 +45,8 @@ class ProphetGrowth(commands.Cog):
                 await interaction.followup.send("予測範囲内でその目標値に到達しません。")
                 return
 
+            days_to_target = (datetime.strptime(found_date, '%Y-%m-%d') - datetime.now()).days
+
             plt.figure(figsize=(12, 8))
             plt.scatter(join_dates, np.arange(1, len(join_dates) + 1), color='blue', label='Actual Data', alpha=0.6)
             plt.plot(forecast['ds'], forecast['yhat'], color='red', label='Prediction', linewidth=2)
@@ -62,7 +64,7 @@ class ProphetGrowth(commands.Cog):
             plt.close()
 
             file = discord.File(buf, filename='prophet_growth_prediction.png')
-            embed = discord.Embed(title="Server Growth Prediction with Prophet", description=f'{target}人に達する予測日: {found_date}', color=discord.Color.blue())
+            embed = discord.Embed(title="Server Growth Prediction with Prophet", description=f'{target}人に達する予測日: {found_date} (あと {days_to_target} 日)', color=discord.Color.blue())
             embed.set_image(url="attachment://prophet_growth_prediction.png")
             embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
             embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
