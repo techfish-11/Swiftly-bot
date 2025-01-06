@@ -8,8 +8,8 @@ class GrowthHelp(commands.Cog):
     @discord.app_commands.command(name="help", description="Swiftlyのヘルプを表示します。")
     async def growth_help(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="成長予測コマンドのヘルプ",
-            description="サーバーの成長を予測するためのコマンドの使い方と特徴を説明します。",
+            title="Swiftlyヘルプ",
+            description="Swiftlyのコマンドの使い方と特徴を説明します。",
             color=discord.Color.blue()
         )
 
