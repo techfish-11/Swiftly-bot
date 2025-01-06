@@ -5,7 +5,7 @@ class GrowthHelp(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="growth_help", description="成長予測コマンドのヘルプを表示します。")
+    @discord.app_commands.Command(name="growth_help", description="成長予測コマンドのヘルプを表示します。")
     async def growth_help(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="成長予測コマンドのヘルプ",
@@ -54,4 +54,6 @@ class GrowthHelp(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(GrowthHelp(bot))
+    cog = GrowthHelp(bot)
+    await bot.add_cog(cog)
+    bot.tree.add_command(cog.growth_help)

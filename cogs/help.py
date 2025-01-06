@@ -14,7 +14,7 @@ class GrowthHelp(commands.Cog):
         )
 
         embed.add_field(
-            name="/growth-help",
+            name="/growth_help",
             value=(
                 "サーバーの成長をお好きなモデルで予測するためのコマンドのhelpです。\n"
                 "特徴:\n"
