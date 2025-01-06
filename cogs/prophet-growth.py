@@ -3,10 +3,13 @@ from discord.ext import commands
 import numpy as np
 from datetime import datetime
 import pandas as pd
-from prophet import Prophet
 import io
-
 import matplotlib.pyplot as plt
+
+try:
+    from prophet import Prophet
+except ImportError:
+    from fbprophet import Prophet
 
 class ProphetGrowth(commands.Cog):
     def __init__(self, bot):
