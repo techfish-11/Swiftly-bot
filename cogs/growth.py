@@ -14,7 +14,7 @@ class Growth(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。")
+    @discord.app_commands.command(name="growth", description="サーバーの成長を予測します。全サーバー向きです。")
     async def growth(self, interaction: discord.Interaction, target: int):
         await interaction.response.defer(thinking=True)
         

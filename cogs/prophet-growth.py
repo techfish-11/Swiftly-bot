@@ -15,7 +15,7 @@ class ProphetGrowth(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="prophet_growth", description="サーバーの成長を予測します。")
+    @discord.app_commands.command(name="prophet_growth", description="サーバーの成長を予測します。Prophetは大規模サーバー向けです。")
     async def prophet_growth(self, interaction: discord.Interaction, target: int):
         await interaction.response.defer(thinking=True)
         
