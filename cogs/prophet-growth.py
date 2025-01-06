@@ -32,7 +32,7 @@ class ProphetGrowth(commands.Cog):
             model = Prophet()
             model.fit(df)
 
-            future = model.make_future_dataframe(periods=36500)
+            future = model.make_future_dataframe(periods=31)
             forecast = model.predict(future)
 
             found_date = None
