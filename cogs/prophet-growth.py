@@ -68,7 +68,7 @@ class ProphetGrowth(commands.Cog):
             embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
             embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
             embed.add_field(name="予測モデル", value="Prophet", inline=True)
-            embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
+            embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab")
 
             await interaction.followup.send(embed=embed, file=file)
         except Exception as e:
