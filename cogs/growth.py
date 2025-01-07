@@ -41,8 +41,9 @@ class Growth(commands.Cog):
             future_days_poly = poly.transform(future_days)
             
             # Progress bar simulation
+            progress_message = await interaction.followup.send("計算中... 0%", ephemeral=True)
             for i in range(0, 101, 10):
-                await interaction.followup.send(f"計算中... {i}%", ephemeral=True)
+                await progress_message.edit(content=f"計算中... {i}%")
                 await asyncio.sleep(0.1)  # Simulate progress
 
             predictions = model.predict(future_days_poly)
