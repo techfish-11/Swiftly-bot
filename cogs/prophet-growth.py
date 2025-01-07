@@ -85,7 +85,13 @@ class ProphetGrowth(commands.Cog):
 
                 await interaction.followup.send(embed=embed, file=file)
             else:
-                await progress_message.edit(content=f"予測完了！ {target}人に達する予測日: {found_date}")
+                embed = discord.Embed(title="Server Growth Prediction", description=f"{target}人に達する予測日: {found_date}", color=discord.Color.green())
+                embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
+                embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
+                embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
+                embed.add_field(name="予測モデル", value="Prophet", inline=True)
+                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab")
+                await progress_message.edit(content=None, embed=embed)
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
 
