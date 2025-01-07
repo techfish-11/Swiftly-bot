@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import io
 
 import matplotlib.pyplot as plt
@@ -14,18 +14,19 @@ class MessageGraph(commands.Cog):
         await interaction.response.defer()
 
         try:
-            now = datetime.utcnow()
+            JST = timezone(timedelta(hours=9))
+            now = datetime.now(JST)
             one_day_ago = now - timedelta(days=1)
             message_counts = [0] * 24
 
             async for message in channel.history(after=one_day_ago, limit=None):
-                hour = (message.created_at - one_day_ago).seconds // 3600
+                hour = (message.created_at.astimezone(JST) - one_day_ago).seconds // 3600
                 message_counts[hour] += 1
 
             hours = [f"{i}:00" for i in range(24)]
             plt.figure(figsize=(10, 5))
             plt.bar(hours, message_counts, color='blue')
-            plt.xlabel('Hour of the Day (UTC)')
+            plt.xlabel('Hour of the Day (JST)')
             plt.ylabel('Message Count')
             plt.title(f'Message Count per Hour in #{channel.name}')
             plt.xticks(rotation=45)
