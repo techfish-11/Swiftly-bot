@@ -83,7 +83,6 @@ class ProphetGrowth(commands.Cog):
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
                 embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab")
 
-                await progress_message.delete()
                 await interaction.followup.send(embed=embed, file=file)
             else:
                 await progress_message.edit(content=f"予測完了！ {target}人に達する予測日: {found_date}")
