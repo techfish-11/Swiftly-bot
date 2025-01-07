@@ -7,6 +7,7 @@ import io
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold, cross_val_score
 from statsmodels.tsa.arima.model import ARIMA
+import asyncio
 
 import matplotlib.pyplot as plt
 
