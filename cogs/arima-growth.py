@@ -13,7 +13,7 @@ class ARIMAGrowth(commands.Cog):
         self.bot = bot
 
     @discord.app_commands.command(name="arima_growth", description="サーバーの成長をARIMAモデルで予測します。")
-    async def arima_growth(self, interaction: discord.Interaction, target: int):
+    async def arima_growth(self, interaction: discord.Interaction, target: int, show_graph: bool = True):
         try:
             await interaction.response.defer(thinking=True)
             
@@ -57,30 +57,38 @@ class ARIMAGrowth(commands.Cog):
                 await interaction.followup.send("予測範囲内でその目標値に到達しません。")
                 return
 
-            plt.figure(figsize=(8, 5))
-            plt.scatter(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
-            pred_dates = [datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))]
-            plt.plot(pred_dates, predictions, color='red', label='Prediction', linewidth=2)
-            plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
-            plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
-            plt.xlabel('Join Date')
-            plt.ylabel('Member Count')
-            plt.title('Server Growth Prediction (ARIMA)')
-            plt.legend()
-            plt.grid(True, linestyle='--', alpha=0.7)
+            if show_graph:
+                plt.figure(figsize=(8, 5))
+                plt.scatter(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
+                pred_dates = [datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))]
+                plt.plot(pred_dates, predictions, color='red', label='Prediction', linewidth=2)
+                plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
+                plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
+                plt.xlabel('Join Date')
+                plt.ylabel('Member Count')
+                plt.title('Server Growth Prediction (ARIMA)')
+                plt.legend()
+                plt.grid(True, linestyle='--', alpha=0.7)
 
-            buf = io.BytesIO()
-            plt.savefig(buf, format='png')
-            buf.seek(0)
-            plt.close()
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                plt.close()
 
-            file = discord.File(buf, filename='arima_growth_prediction.png')
-            embed = discord.Embed(
-                title="Server Growth Prediction (ARIMA)",
-                description=f'{target}人に達する予測日: {found_date.date()}',
-                color=discord.Color.blue()
-            )
-            embed.set_image(url="attachment://arima_growth_prediction.png")
+                file = discord.File(buf, filename='arima_growth_prediction.png')
+                embed = discord.Embed(
+                    title="Server Growth Prediction (ARIMA)",
+                    description=f'{target}人に達する予測日: {found_date.date()}',
+                    color=discord.Color.blue()
+                )
+                embed.set_image(url="attachment://arima_growth_prediction.png")
+            else:
+                embed = discord.Embed(
+                    title="Server Growth Prediction (ARIMA)",
+                    description=f'{target}人に達する予測日: {found_date.date()}',
+                    color=discord.Color.blue()
+                )
+
             embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
             embed.add_field(name="最適パラメータ", value=str(best_order), inline=True)
             embed.add_field(name="AIC", value=f"{model_fit.aic:.2f}", inline=True)
@@ -89,7 +97,10 @@ class ARIMAGrowth(commands.Cog):
             embed.add_field(name="予測モデル", value="ARIMA", inline=True)
             embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。この機能はベータバージョンです。")
 
-            await interaction.followup.send(embed=embed, file=file)
+            if show_graph:
+                await interaction.followup.send(embed=embed, file=file)
+            else:
+                await interaction.followup.send(embed=embed)
 
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {e}")
