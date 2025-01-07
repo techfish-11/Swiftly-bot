@@ -32,11 +32,20 @@ class ProphetGrowth(commands.Cog):
             data = {'ds': [d.strftime('%Y-%m-%d') for d in join_dates], 'y': np.arange(1, len(join_dates) + 1)}
             df = pd.DataFrame(data)
 
+            # Send initial progress message
+            progress_message = await interaction.followup.send("データを処理中... 0%")
+
             model = Prophet()
             model.fit(df)
 
+            # Update progress
+            await progress_message.edit(content="データを処理中... 50%")
+
             future = model.make_future_dataframe(periods=92)
             forecast = model.predict(future)
+
+            # Update progress
+            await progress_message.edit(content="データを処理中... 75%")
 
             found_date = None
             for i, row in forecast.iterrows():
@@ -45,7 +54,7 @@ class ProphetGrowth(commands.Cog):
                     break
 
             if not found_date:
-                await interaction.followup.send("予測範囲内でその目標値に到達しません。")
+                await progress_message.edit(content="予測範囲内でその目標値に到達しません。")
                 return
 
             plt.figure(figsize=(12, 8))
@@ -73,7 +82,7 @@ class ProphetGrowth(commands.Cog):
             embed.add_field(name="予測モデル", value="Prophet", inline=True)
             embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab")
 
-            await interaction.followup.send(embed=embed, file=file)
+            await progress_message.edit(content="予測完了！", embed=embed, file=file)
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
 
