@@ -82,7 +82,8 @@ class ProphetGrowth(commands.Cog):
             embed.add_field(name="予測モデル", value="Prophet", inline=True)
             embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab")
 
-            await progress_message.edit(content="予測完了！", embed=embed, file=file)
+            await progress_message.edit(content="予測完了！", embed=embed)
+            await interaction.followup.send(file=file)
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
 
