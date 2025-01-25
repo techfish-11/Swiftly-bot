@@ -17,8 +17,8 @@ class Sandbox(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=payload, headers=headers) as response:
                     if response.status == 200:
-                        result = await response.json()
-                        embed = discord.Embed(title="Sandbox Execution Result", description=f'```{result["output"]}```', color=discord.Color.green())
+                        result = await response.text()
+                        embed = discord.Embed(title="Sandbox Execution Result", description=f'```{result}```', color=discord.Color.green())
                         embed.set_footer(text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
                         await ctx.followup.send(embed=embed)
                     else:
