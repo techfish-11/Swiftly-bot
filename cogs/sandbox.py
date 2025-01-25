@@ -6,12 +6,12 @@ class Sandbox(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name='sandbox', description='Executes JavaScript or TypeScript code and returns the result.')
-    async def sandbox(self, ctx: discord.Interaction, code: str, language: str = 'javascript') -> None:
+    @discord.app_commands.command(name='sandbox', description='Executes JavaScript code and returns the result.')
+    async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
         url = 'https://js-sandbox.evex.land/'
         headers = {'Content-Type': 'application/json'}
-        payload = {'code': code, 'language': language}
+        payload = {'code': code}
 
         try:
             async with aiohttp.ClientSession() as session:
