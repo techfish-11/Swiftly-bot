@@ -17,7 +17,9 @@ class Youyaku(commands.Cog):
 
         try:
             # Fetch the message history
-            messages = await channel.history(limit=num_messages).flatten()
+            messages = []
+            async for message in channel.history(limit=num_messages):
+                messages.append(message)
             message_contents = [message.content for message in messages if message.content]
 
             if not message_contents:

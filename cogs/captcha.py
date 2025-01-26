@@ -13,7 +13,7 @@ class Captcha(commands.Cog):
     @discord.app_commands.describe(difficulty='Difficulty level of the CAPTCHA (1-10)')
     async def captcha(self, ctx: discord.Interaction, difficulty: int = 1) -> None:
         if difficulty < 1 or difficulty > 10:
-            await ctx.response.send_message('Difficulty must be between 1 and 10.')
+            await ctx.send('Difficulty must be between 1 and 10.')
             return
 
         async with self.session.get(f'https://captcha.evex.land/api/captcha?difficulty={difficulty}') as response:
@@ -26,9 +26,9 @@ class Captcha(commands.Cog):
                 embed = discord.Embed(title="CAPTCHA", description=f"Difficulty: {difficulty}", color=discord.Color.blue())
                 embed.set_image(url="attachment://captcha.png")
                 embed.set_footer(text=f"Image provided by https://captcha.evex.land/client/\nAnswer: {answer}")
-                await ctx.response.send_message(embed=embed, file=image_file)
+                await ctx.send(embed=embed, file=image_file)
             else:
-                await ctx.response.send_message('Failed to retrieve CAPTCHA.')
+                await ctx.send('Failed to retrieve CAPTCHA.')
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())  # セッションをクローズ
