@@ -44,9 +44,10 @@ class Sandbox(commands.Cog):
 
         if message.content.startswith('?sandbox'):
             code = message.content[len('?sandbox '):]
-            await self.execute_sandbox(message, code)
+            progress_message = await message.channel.send("実行中・・・")
+            await self.execute_sandbox(message, code, progress_message)
 
-    async def execute_sandbox(self, message, code: str):
+    async def execute_sandbox(self, message, code: str, progress_message: discord.Message):
         url = 'https://js-sandbox.evex.land/'
         headers = {'Content-Type': 'application/json'}
         payload = {'code': code}
@@ -59,11 +60,11 @@ class Sandbox(commands.Cog):
 
                 if response.status == 200:
                     result = await response.text()
-                    await message.channel.send(f'```\n{result}\n```\nExecution Time: {elapsed_time:.2f} seconds')
+                    await progress_message.edit(content=f'```\n{result}\n```\nExecution Time: {elapsed_time:.2f} seconds')
                 else:
-                    await message.channel.send(f'Error: Failed to execute code.\nExecution Time: {elapsed_time:.2f} seconds')
+                    await progress_message.edit(content=f'Error: Failed to execute code.\nExecution Time: {elapsed_time:.2f} seconds')
         except Exception as e:
-            await message.channel.send(f'Exception: {str(e)}')
+            await progress_message.edit(content=f'Exception: {str(e)}')
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
