@@ -43,7 +43,8 @@ class Sandbox(commands.Cog):
             return
 
         if message.content.startswith('?sandbox'):
-            code = message.content[len('?sandbox '):]
+            code_lines = message.content.split('\n')[1:]  # コマンド部分を除いたコード部分を取得
+            code = '\n'.join(code_lines)  # 改行を含むコードを結合
             progress_message = await message.channel.send("実行中・・・")
             await self.execute_sandbox(message, code, progress_message)
 
