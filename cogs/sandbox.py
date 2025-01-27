@@ -37,9 +37,16 @@ class Sandbox(commands.Cog):
             embed.set_footer(text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
             await ctx.followup.send(embed=embed)
 
-    @commands.command(name='sandbox')
-    async def sandbox_text(self, ctx, *, code: str):
-        message = await ctx.send("実行中・・・")
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+
+        if message.content.startswith('?sandbox'):
+            code = message.content[len('?sandbox '):]
+            await self.execute_sandbox(message, code)
+
+    async def execute_sandbox(self, message, code: str):
         url = 'https://js-sandbox.evex.land/'
         headers = {'Content-Type': 'application/json'}
         payload = {'code': code}
@@ -52,11 +59,11 @@ class Sandbox(commands.Cog):
 
                 if response.status == 200:
                     result = await response.text()
-                    await message.edit(content=f'```\n{result}\n```\nExecution Time: {elapsed_time:.2f} seconds')
+                    await message.channel.send(f'```\n{result}\n```\nExecution Time: {elapsed_time:.2f} seconds')
                 else:
-                    await message.edit(content=f'Error: Failed to execute code.\nExecution Time: {elapsed_time:.2f} seconds')
+                    await message.channel.send(f'Error: Failed to execute code.\nExecution Time: {elapsed_time:.2f} seconds')
         except Exception as e:
-            await message.edit(content=f'Exception: {str(e)}')
+            await message.channel.send(f'Exception: {str(e)}')
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
