@@ -37,6 +37,27 @@ class Sandbox(commands.Cog):
             embed.set_footer(text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
             await ctx.followup.send(embed=embed)
 
+    @commands.command(name='sandbox')
+    async def sandbox_text(self, ctx, *, code: str):
+        message = await ctx.send("実行中・・・")
+        url = 'https://js-sandbox.evex.land/'
+        headers = {'Content-Type': 'application/json'}
+        payload = {'code': code}
+
+        try:
+            start_time = time.monotonic()
+            async with self.session.post(url, json=payload, headers=headers) as response:
+                end_time = time.monotonic()
+                elapsed_time = end_time - start_time
+
+                if response.status == 200:
+                    result = await response.text()
+                    await message.edit(content=f'```\n{result}\n```\nExecution Time: {elapsed_time:.2f} seconds')
+                else:
+                    await message.edit(content=f'Error: Failed to execute code.\nExecution Time: {elapsed_time:.2f} seconds')
+        except Exception as e:
+            await message.edit(content=f'Exception: {str(e)}')
+
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
 
