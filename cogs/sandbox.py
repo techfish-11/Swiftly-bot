@@ -8,7 +8,7 @@ class Sandbox(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
-    @discord.app_commands.command(name='sandbox', description='Executes JavaScript code and returns the result.')
+    @discord.app_commands.command(name='sandbox', description='JavaScript コードをサンドボックスで実行し、結果を返します。')
     async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
         url = 'https://js-sandbox.evex.land/'
