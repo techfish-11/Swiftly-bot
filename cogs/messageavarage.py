@@ -15,20 +15,27 @@ class MessageAverage(commands.Cog):
         one_day_ago = now - timedelta(days=1)
         message_counts = [0] * 24
 
-        total_channels = sum(len(guild.text_channels) for guild in self.bot.guilds)
-        processed_channels = 0
+        async def fetch_channel_history(channel):
+            try:
+                async for message in channel.history(after=one_day_ago, oldest_first=True):
+                    hour_index = (message.created_at - one_day_ago).seconds // 3600
+                    message_counts[hour_index] += 1
+            except (discord.Forbidden, discord.HTTPException):
+                pass
 
+        tasks = []
         for guild in self.bot.guilds:
             for channel in guild.text_channels:
-                try:
-                    async for message in channel.history(after=one_day_ago, oldest_first=True):
-                        hour_index = (message.created_at - one_day_ago).seconds // 3600
-                        message_counts[hour_index] += 1
-                except (discord.Forbidden, discord.HTTPException):
-                    continue
-                processed_channels += 1
-                progress = processed_channels / total_channels
-                await interaction.edit_original_response(content=f"進行中... {progress:.2%} 完了")
+                tasks.append(fetch_channel_history(channel))
+
+        total_channels = len(tasks)
+        processed_channels = 0
+
+        for task in asyncio.as_completed(tasks):
+            await task
+            processed_channels += 1
+            progress = processed_channels / total_channels
+            await interaction.edit_original_response(content=f"進行中... {progress:.2%} 完了")
 
         average_messages = sum(message_counts) / 24
         embed = discord.Embed(
