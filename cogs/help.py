@@ -14,9 +14,9 @@ class Help(commands.Cog):
         )
 
         embed.add_field(
-            name="/growth_help",
+            name="/growth, /prophet-growth, /arima-growth",
             value=(
-                "サーバーの成長をお好きなモデルで予測するためのコマンドのhelpです。\n"
+                "サーバーの成長をAIで予測できるコマンドです。\n"
                 "特徴:\n"
                 "- 3次多項式回帰や、ARIMA、Prophetを使用できます。\n"
                 "- サーバーの目標人数は何日に達成するか大体をAIで予測できます。\n"
