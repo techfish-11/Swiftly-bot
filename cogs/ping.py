@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
-import asyncio
-import subprocess
+from ping3 import ping
 
 class Ping(commands.Cog):
     def __init__(self, bot):
@@ -14,15 +13,10 @@ class Ping(commands.Cog):
         # Function to ping a host
         async def ping_host(host):
             try:
-                proc = await asyncio.create_subprocess_shell(
-                    f'ping -n 1 {host}',
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                stdout, stderr = await proc.communicate()
-                if proc.returncode != 0:
-                    return f"Failed to ping {host}: {stderr.decode()}"
-                return stdout.decode()
+                delay = ping(host, timeout=2)
+                if delay is None:
+                    return f"Failed to ping {host}: No response"
+                return f"Ping to {host}: {delay * 1000:.2f}ms"
             except Exception as e:
                 return f"Error pinging {host}: {str(e)}"
 
@@ -32,13 +26,8 @@ class Ping(commands.Cog):
 
         embed = discord.Embed(
             title="Pong!",
-            description=f"Bot Latency: {latency:.2f}ms",
+            description=f"Bot Latency: {latency:.2f}ms\n\nNetwork Router Ping\n{router_ping}\n\nHost Server Ping\n{server_ping}",
             color=discord.Color.green()
         )
-        embed.add_field(name="Network Router Ping", value=router_ping, inline=False)
-        embed.add_field(name="Host Server Ping", value=server_ping, inline=False)
 
         await interaction.response.send_message(embed=embed)
-
-async def setup(bot):
-    await bot.add_cog(Ping(bot))
