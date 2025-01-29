@@ -58,7 +58,7 @@ class Help(commands.Cog):
         )
 
 
-        embed.set_footer(text="Hosted by TechFish_Lab")
+        embed.set_footer(text="Hosted by TechFish_Lab \n Support Server: https://discord.gg/evex")
 
         await interaction.response.send_message(embed=embed)
 
