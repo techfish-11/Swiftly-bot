@@ -13,13 +13,18 @@ class Ping(commands.Cog):
 
         # Function to ping a host
         async def ping_host(host):
-            proc = await asyncio.create_subprocess_shell(
-                f'ping -n 1 {host}',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            stdout, _ = await proc.communicate()
-            return stdout.decode()
+            try:
+                proc = await asyncio.create_subprocess_shell(
+                    f'ping -n 1 {host}',
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                stdout, stderr = await proc.communicate()
+                if proc.returncode != 0:
+                    return f"Failed to ping {host}: {stderr.decode()}"
+                return stdout.decode()
+            except Exception as e:
+                return f"Error pinging {host}: {str(e)}"
 
         # Ping the router and host server
         router_ping = await ping_host('192.168.1.1')
