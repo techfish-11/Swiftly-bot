@@ -18,7 +18,8 @@ class Base64(commands.Cog):
             if action == "encode":
                 # UTF-8 エンコードをBase64に変換
                 encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-                await interaction.response.send_message(f"エンコード結果: {encoded}")
+                embed = discord.Embed(title="Base64 エンコード結果", description=encoded, color=discord.Color.blue())
+                await interaction.response.send_message(embed=embed)
             elif action == "decode":
                 # Base64デコード
                 decoded = base64.b64decode(content).decode('utf-8')
@@ -29,7 +30,8 @@ class Base64(commands.Cog):
                     await interaction.response.send_message("デコード結果に、@ everyone やメンション、役職メンションが含まれているため、デコードを拒否しました。")
                     return
 
-                await interaction.response.send_message(f"デコード結果: {decoded}")
+                embed = discord.Embed(title="Base64 デコード結果", description=decoded, color=discord.Color.green())
+                await interaction.response.send_message(embed=embed)
         except base64.binascii.Error:
             # 無効なBase64形式のエラーハンドリング
             await interaction.response.send_message("無効なBase64文字列です。正しい形式で入力してください。")
