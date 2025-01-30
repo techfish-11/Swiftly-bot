@@ -11,8 +11,13 @@ class BotAdmin(commands.Cog):
     @discord.app_commands.command(name="botadmin", description="Bot管理コマンド")
     async def botadmin_command(self, interaction: discord.Interaction, option: str):
         if option == "servers":
-            servers = [guild.name for guild in self.bot.guilds]
-            embed = discord.Embed(title="参加中のサーバー", description=", ".join(servers), color=discord.Color.blue())
+            embed = discord.Embed(title="参加中のサーバー", color=discord.Color.blue())
+            for guild in self.bot.guilds:
+                member_count = len(guild.members)
+                owner = guild.owner
+                created_at = guild.created_at.strftime("%Y-%m-%d")
+                value = f"ID: {guild.id}\nオーナー: {owner}\nメンバー数: {member_count}\n作成日: {created_at}"
+                embed.add_field(name=guild.name, value=value, inline=False)
             await interaction.response.send_message(embed=embed, ephemeral=True)
         elif option == "debug":
             cogs = ", ".join(self.bot.cogs.keys())
