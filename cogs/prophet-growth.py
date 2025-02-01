@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 import io
 import matplotlib.pyplot as plt
+import asyncio
 
 try:
     from prophet import Prophet
@@ -35,8 +36,9 @@ class ProphetGrowth(commands.Cog):
             # Send initial progress message
             progress_message = await interaction.followup.send("データを処理中... 0%")
 
-            model = Prophet()
-            model.fit(df)
+            # Fit the model in a separate thread to avoid blocking
+            loop = asyncio.get_event_loop()
+            model = await loop.run_in_executor(None, self.fit_model, df)
 
             # Update progress
             await progress_message.edit(content="データを処理中... 50%")
@@ -47,42 +49,25 @@ class ProphetGrowth(commands.Cog):
             # Update progress
             await progress_message.edit(content="データを処理中... 75%")
 
-            found_date = None
-            for i, row in forecast.iterrows():
-                if row['yhat'] >= target:
-                    found_date = row['ds']
-                    break
+            found_date = self.find_target_date(forecast, target)
 
             if not found_date:
                 await progress_message.edit(content="予測範囲内でその目標値に到達しません。")
                 return
 
             if show_graph:
-                plt.figure(figsize=(12, 8))
-                plt.scatter(join_dates, np.arange(1, len(join_dates) + 1), color='blue', label='Actual Data', alpha=0.6)
-                plt.plot(forecast['ds'], forecast['yhat'], color='red', label='Prediction', linewidth=2)
-                plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
-                plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date}', linewidth=2)
-                plt.xlabel('Join Date', fontsize=14)
-                plt.ylabel('Member Count', fontsize=14)
-                plt.title('Server Growth Prediction with Prophet', fontsize=16)
-                plt.legend()
-                plt.grid(True, linestyle='--', alpha=0.7)
-
-                buf = io.BytesIO()
-                plt.savefig(buf, format='png')
-                buf.seek(0)
-                plt.close()
-
+                # Generate the plot in a separate thread to avoid blocking
+                buf = await loop.run_in_executor(None, self.generate_plot, join_dates, forecast, target, found_date)
                 file = discord.File(buf, filename='prophet_growth_prediction.png')
+                
                 embed = discord.Embed(title="Server Growth Prediction with Prophet", description=f'{target}人に達する予測日: {found_date}', color=discord.Color.blue())
                 embed.set_image(url="attachment://prophet_growth_prediction.png")
                 embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
                 embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
-                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server: https://discord.gg/evex")
-
+                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server[...]")
+                
                 await interaction.followup.send(embed=embed, file=file)
             else:
                 embed = discord.Embed(title="Server Growth Prediction", description=f"{target}人に達する予測日: {found_date}", color=discord.Color.green())
@@ -90,10 +75,39 @@ class ProphetGrowth(commands.Cog):
                 embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
-                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server: https://discord.gg/evex")
+                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server[...]")
                 await progress_message.edit(content=None, embed=embed)
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
+
+    def fit_model(self, df):
+        model = Prophet()
+        model.fit(df)
+        return model
+
+    def find_target_date(self, forecast, target):
+        for i, row in forecast.iterrows():
+            if row['yhat'] >= target:
+                return row['ds']
+        return None
+
+    def generate_plot(self, join_dates, forecast, target, found_date):
+        plt.figure(figsize=(12, 8))
+        plt.scatter(join_dates, np.arange(1, len(join_dates) + 1), color='blue', label='Actual Data', alpha=0.6)
+        plt.plot(forecast['ds'], forecast['yhat'], color='red', label='Prediction', linewidth=2)
+        plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
+        plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date}', linewidth=2)
+        plt.xlabel('Join Date', fontsize=14)
+        plt.ylabel('Member Count', fontsize=14)
+        plt.title('Server Growth Prediction with Prophet', fontsize=16)
+        plt.legend()
+        plt.grid(True, linestyle='--', alpha=0.7)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.close()
+        return buf
 
 async def setup(bot):
     await bot.add_cog(ProphetGrowth(bot))
