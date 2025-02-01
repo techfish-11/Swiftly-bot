@@ -3,11 +3,15 @@ from discord.ext import commands
 from discord import app_commands
 import wikipedia
 import re
+import asyncio
+from functools import lru_cache
+from typing import Optional, Tuple, List
 
 class WikipediaCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        wikipedia.set_lang("ja")  # 日本語のWikipediaを使用
+        wikipedia.set_lang("ja")
+        self._cache = {}
 
     def sanitize_input(self, content: str) -> str:
         """メンションなどの無効化"""
@@ -16,26 +20,37 @@ class WikipediaCog(commands.Cog):
         sanitized = re.sub(r'@(everyone|here)', '＠\\1', sanitized)  # @everyone, @hereを無効化
         return sanitized
 
+    @lru_cache(maxsize=100)
+    def _get_cached_search(self, query: str) -> List[str]:
+        """検索結果をキャッシュする"""
+        return wikipedia.search(query, results=3)
+
+    async def _get_page_info(self, title: str) -> Tuple[str, str, str]:
+        """ページ情報を非同期で取得"""
+        loop = asyncio.get_event_loop()
+        try:
+            page = await loop.run_in_executor(None, wikipedia.page, title)
+            summary = await loop.run_in_executor(None, wikipedia.summary, title, 3)
+            return page.title, summary, page.url
+        except Exception as e:
+            raise e
+
     @app_commands.command(name="wikipedia", description="Wikipediaで検索します")
     async def wikipedia_search(self, interaction: discord.Interaction, query: str):
         """Wikipediaで検索し、結果をDiscordに送信します。"""
-        await interaction.response.defer()  # 応答を遅延（非同期処理用）
-        query = self.sanitize_input(query)  # クエリをサニタイズ
+        await interaction.response.defer()
+        query = self.sanitize_input(query)
 
         try:
-            # Wikipediaで検索
-            search_results = wikipedia.search(query, results=3)
+            # キャッシュされた検索を使用
+            search_results = self._get_cached_search(query)
             if not search_results:
                 await interaction.followup.send(f"**'{query}'** に該当する結果はありませんでした。")
                 return
 
-            # 最初の検索結果のページを取得
-            page = wikipedia.page(search_results[0])
-            title = page.title
-            summary = wikipedia.summary(search_results[0], sentences=3)
-            url = page.url
+            # 非同期でページ情報を取得
+            title, summary, url = await self._get_page_info(search_results[0])
 
-            # Embed形式で送信
             embed = discord.Embed(
                 title=title,
                 description=summary,
@@ -46,8 +61,7 @@ class WikipediaCog(commands.Cog):
             await interaction.followup.send(embed=embed)
 
         except wikipedia.exceptions.DisambiguationError as e:
-            # 曖昧な結果が見つかった場合
-            options = e.options[:5]  # 最初の5件を表示
+            options = e.options[:5]
             embed = discord.Embed(
                 title="曖昧な検索結果",
                 description="\n".join(options),
@@ -58,7 +72,7 @@ class WikipediaCog(commands.Cog):
         except wikipedia.exceptions.PageError:
             await interaction.followup.send(f"**'{query}'** に該当するページが見つかりませんでした。")
         except Exception as e:
-            await interaction.followup.send(f"エラーが発生しました")
+            await interaction.followup.send("エラーが発生しました")
 
 async def setup(bot: commands.Bot):
     """Cogを非同期で追加するためのセットアップ関数"""
