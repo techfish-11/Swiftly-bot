@@ -81,7 +81,16 @@ class ProphetGrowth(commands.Cog):
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
 
     def fit_model(self, df):
-        model = Prophet()
+        import pandas as pd
+        # 文字列の日付をdatetime型に変換（必要に応じて）
+        df['ds'] = pd.to_datetime(df['ds'])
+        # 改善されたモデル設定: changepointsの数を増やし、より詳細な週次季節性を追加
+        model = Prophet(
+            n_changepoints=100,
+            changepoint_prior_scale=0.1,
+            seasonality_mode='multiplicative'
+        )
+        model.add_seasonality(name='weekly', period=7, fourier_order=3)
         model.fit(df)
         return model
 
