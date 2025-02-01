@@ -44,7 +44,8 @@ class ProphetGrowth(commands.Cog):
             await progress_message.edit(content="データを処理中... 50%")
 
             future = model.make_future_dataframe(periods=92)
-            forecast = model.predict(future)
+            # 予測処理を別スレッドで実行（従来は同期実行）
+            forecast = await loop.run_in_executor(None, model.predict, future)
 
             # Update progress
             await progress_message.edit(content="データを処理中... 75%")
