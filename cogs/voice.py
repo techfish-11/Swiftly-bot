@@ -8,12 +8,6 @@ class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.tts_engine = pyttsx3.init()
-        
-        # Set TTS properties
-        self.tts_engine.setProperty('rate', 125)  # setting up new voice rate
-        self.tts_engine.setProperty('volume', 1.0)  # setting up volume level between 0 and 1
-        voices = self.tts_engine.getProperty('voices')
-        self.tts_engine.setProperty('voice', voices[1].id)  # changing index, changes voices. 1 for female
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
