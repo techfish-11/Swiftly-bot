@@ -27,7 +27,11 @@ class Voice(commands.Cog):
                 await interaction.guild.voice_client.move_to(voice_channel)
             else:
                 await voice_channel.connect()
-            
+
+            # Mute the bot
+            voice_client = interaction.guild.voice_client
+            await voice_client.guild.change_voice_state(channel=voice_client.channel, self_mute=True)
+
             embed = discord.Embed(
                 description=f"✅ {voice_channel.name} に参加しました。",
                 color=discord.Color.green()
