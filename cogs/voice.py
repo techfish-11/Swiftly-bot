@@ -1,13 +1,14 @@
 import discord
 from discord.ext import commands
-import pyttsx3
+import edge_tts
 import tempfile
 import os
+
+VOICE = "ja-JP-NanamiNeural"  # Predefined voice
 
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tts_engine = pyttsx3.init()
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
@@ -79,15 +80,16 @@ class Voice(commands.Cog):
             if not interaction.guild.voice_client:
                 await voice_channel.connect()
 
-            # Generate TTS audio
+            # Generate TTS audio using edge_tts
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-                self.tts_engine.save_to_file(message, temp_audio_file.name)
-                self.tts_engine.runAndWait()
-                temp_audio_file.close()
+                temp_filename = temp_audio_file.name
 
-                # Play the audio in the voice channel
-                voice_client = interaction.guild.voice_client
-                voice_client.play(discord.FFmpegPCMAudio(temp_audio_file.name), after=lambda _: os.remove(temp_audio_file.name))
+            tts = edge_tts.Communicate(message, VOICE)
+            await tts.save(temp_filename)
+
+            # Play the audio in the voice channel
+            voice_client = interaction.guild.voice_client
+            voice_client.play(discord.FFmpegPCMAudio(temp_filename), after=lambda _: os.remove(temp_filename))
 
             embed = discord.Embed(
                 description=f"📢 メッセージを読み上げました: {message}",
