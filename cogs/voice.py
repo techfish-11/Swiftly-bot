@@ -92,7 +92,7 @@ class Voice(commands.Cog):
 
                 # Play the audio in the voice channel
                 voice_client = interaction.guild.voice_client
-                voice_client.play(discord.FFmpegPCMAudio(temp_audio_file.name), after=lambda e: os.remove(temp_audio_file.name))
+                voice_client.play(discord.FFmpegPCMAudio(temp_audio_file.name), after=lambda _: os.remove(temp_audio_file.name))
 
             embed = discord.Embed(
                 description=f"📢 メッセージを読み上げました: {message}",
@@ -108,6 +108,7 @@ class Voice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        del before, after  # Unused variables
         voice_client = member.guild.voice_client
         if voice_client:
             if len(voice_client.channel.members) == 1:  # ボットだけが残っている場合
