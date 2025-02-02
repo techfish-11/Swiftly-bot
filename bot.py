@@ -37,14 +37,7 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send("コマンドが見つかりません。")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("必要な引数が不足しています。")
-    elif isinstance(error, commands.CommandInvokeError):
-        await ctx.send("コマンドの実行中にエラーが発生しました。")
-    else:
-        await ctx.send("エラーが発生しました。")
+        await ctx.send(f"エラーが発生しました")
 
 if __name__ == '__main__':
     asyncio.run(bot.start(TOKEN))
