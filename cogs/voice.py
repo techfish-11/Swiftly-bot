@@ -70,6 +70,8 @@ class Voice(commands.Cog):
 
     @discord.app_commands.command(name="vc-tts", description="メッセージを読み上げます")
     async def vc_tts(self, interaction: discord.Interaction, message: str):
+        import asyncio  # Ensure asyncio is imported
+
         if not interaction.user.voice:
             embed = discord.Embed(
                 description="先にボイスチャンネルに参加してください。",
@@ -79,33 +81,52 @@ class Voice(commands.Cog):
             return
 
         voice_channel = interaction.user.voice.channel
+        guild = interaction.guild
 
-        try:
-            if not interaction.guild.voice_client:
-                await voice_channel.connect()
+        # Create a per-guild lock to prevent concurrent voice actions in the same server
+        if not hasattr(self, "locks"):
+            self.locks = {}
+        if guild.id not in self.locks:
+            self.locks[guild.id] = asyncio.Lock()
 
-            # Generate TTS audio using edge_tts
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-                temp_filename = temp_audio_file.name
+        async with self.locks[guild.id]:
+            try:
+                if guild.voice_client:
+                    # Move to user's channel if not already present
+                    if guild.voice_client.channel != voice_channel:
+                        await guild.voice_client.move_to(voice_channel)
+                else:
+                    await voice_channel.connect()
 
-            tts = edge_tts.Communicate(message, VOICE)
-            await tts.save(temp_filename)
+                # Generate TTS audio using edge_tts
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+                    temp_filename = temp_audio_file.name
 
-            # Play the audio in the voice channel
-            voice_client = interaction.guild.voice_client
-            voice_client.play(discord.FFmpegPCMAudio(temp_filename), after=lambda _: os.remove(temp_filename))
+                tts = edge_tts.Communicate(message, VOICE)
+                await tts.save(temp_filename)
 
-            embed = discord.Embed(
-                description=f"📢 メッセージを読み上げました: {message}",
-                color=discord.Color.green()
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=False)
-        except Exception as e:
-            embed = discord.Embed(
-                description=f"エラーが発生しました: {str(e)}",
-                color=discord.Color.red()
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=False)
+                voice_client = guild.voice_client
+
+                # Stop current playback if any, then play new audio
+                if voice_client.is_playing():
+                    voice_client.stop()
+
+                voice_client.play(
+                    discord.FFmpegPCMAudio(temp_filename),
+                    after=lambda e: os.remove(temp_filename) if os.path.exists(temp_filename) else None
+                )
+
+                embed = discord.Embed(
+                    description=f"📢 メッセージを読み上げました: {message}",
+                    color=discord.Color.green()
+                )
+                await interaction.response.send_message(embed=embed, ephemeral=False)
+            except Exception as e:
+                embed = discord.Embed(
+                    description=f"エラーが発生しました: {str(e)}",
+                    color=discord.Color.red()
+                )
+                await interaction.response.send_message(embed=embed, ephemeral=False)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
