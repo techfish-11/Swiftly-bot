@@ -1,9 +1,13 @@
 import discord
 from discord.ext import commands
+import pyttsx3
+import tempfile
+import os
 
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.tts_engine = pyttsx3.init()
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
@@ -49,6 +53,43 @@ class Voice(commands.Cog):
             await interaction.guild.voice_client.disconnect()
             embed = discord.Embed(
                 description="👋 ボイスチャンネルから退出しました。",
+                color=discord.Color.green()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+        except Exception as e:
+            embed = discord.Embed(
+                description=f"エラーが発生しました: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+
+    @discord.app_commands.command(name="vc-tts", description="メッセージを読み上げます")
+    async def vc_tts(self, interaction: discord.Interaction, message: str):
+        if not interaction.user.voice:
+            embed = discord.Embed(
+                description="先にボイスチャンネルに参加してください。",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+            return
+
+        voice_channel = interaction.user.voice.channel
+
+        try:
+            if not interaction.guild.voice_client:
+                await voice_channel.connect()
+
+            # Generate TTS audio
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+                self.tts_engine.save_to_file(message, temp_audio_file.name)
+                temp_audio_file.close()
+
+                # Play the audio in the voice channel
+                voice_client = interaction.guild.voice_client
+                voice_client.play(discord.FFmpegPCMAudio(temp_audio_file.name), after=lambda e: os.remove(temp_audio_file.name))
+
+            embed = discord.Embed(
+                description=f"📢 メッセージを読み上げました: {message}",
                 color=discord.Color.green()
             )
             await interaction.response.send_message(embed=embed, ephemeral=False)
