@@ -86,8 +86,9 @@ class Voice(commands.Cog):
                 await voice_channel.connect()
 
             # Generate TTS audio
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
                 self.tts_engine.save_to_file(message, temp_audio_file.name)
+                self.tts_engine.runAndWait()
                 temp_audio_file.close()
 
                 # Play the audio in the voice channel
