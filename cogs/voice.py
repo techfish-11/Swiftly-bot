@@ -7,36 +7,64 @@ class Voice(commands.Cog):
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
-        # Check if the user is in a voice channel
         if not interaction.user.voice:
-            await interaction.response.send_message("先にボイスチャンネルに参加してください。", ephemeral=False)
+            embed = discord.Embed(
+                description="先にボイスチャンネルに参加してください。",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
             return
 
         voice_channel = interaction.user.voice.channel
 
         try:
-            # Check if bot is already in a voice channel in this guild
             if interaction.guild.voice_client:
                 await interaction.guild.voice_client.move_to(voice_channel)
             else:
                 await voice_channel.connect()
             
-            await interaction.response.send_message(f"✅ {voice_channel.name} に参加しました。", ephemeral=False)
+            embed = discord.Embed(
+                description=f"✅ {voice_channel.name} に参加しました。",
+                color=discord.Color.green()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
         except Exception as e:
-            await interaction.response.send_message(f"エラーが発生しました: {str(e)}", ephemeral=False)
+            embed = discord.Embed(
+                description=f"エラーが発生しました: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
 
     @discord.app_commands.command(name="leave", description="ボイスチャンネルから退出します")
     async def leave(self, interaction: discord.Interaction):
-        # Check if bot is in a voice channel
         if not interaction.guild.voice_client:
-            await interaction.response.send_message("ボイスチャンネルに参加していません。", ephemeral=False)
+            embed = discord.Embed(
+                description="ボイスチャンネルに参加していません。",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
             return
 
         try:
             await interaction.guild.voice_client.disconnect()
-            await interaction.response.send_message("👋 ボイスチャンネルから退出しました。", ephemeral=False)
+            embed = discord.Embed(
+                description="👋 ボイスチャンネルから退出しました。",
+                color=discord.Color.green()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
         except Exception as e:
-            await interaction.response.send_message(f"エラーが発生しました: {str(e)}", ephemeral=False)
+            embed = discord.Embed(
+                description=f"エラーが発生しました: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        voice_client = member.guild.voice_client
+        if voice_client:
+            if len(voice_client.channel.members) == 1:  # ボットだけが残っている場合
+                await voice_client.disconnect()
 
 async def setup(bot):
     await bot.add_cog(Voice(bot))
