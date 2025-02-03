@@ -15,7 +15,8 @@ class Voice(commands.Cog):
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
-        if not interaction.user.voice:
+        member = interaction.guild.get_member(interaction.user.id)
+        if not member or not member.voice:
             embed = discord.Embed(
                 description="先にボイスチャンネルに参加してください。",
                 color=discord.Color.red()
@@ -23,7 +24,7 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
             return
 
-        voice_channel = interaction.user.voice.channel
+        voice_channel = member.voice.channel
         guild_id = interaction.guild.id
         channel_id = voice_channel.id
 
@@ -54,8 +55,17 @@ class Voice(commands.Cog):
 
     @discord.app_commands.command(name="leave", description="ボイスチャンネルから退出します")
     async def leave(self, interaction: discord.Interaction):
+        member = interaction.guild.get_member(interaction.user.id)
+        if not member or not member.voice:
+            embed = discord.Embed(
+                description="ボイスチャンネルに参加していません。",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+            return
+
         guild_id = interaction.guild.id
-        voice_channel = interaction.user.voice.channel
+        voice_channel = member.voice.channel
         channel_id = voice_channel.id
 
         if guild_id not in self.voice_clients or channel_id not in self.voice_clients[guild_id]:
@@ -86,7 +96,8 @@ class Voice(commands.Cog):
 
     @discord.app_commands.command(name="vc-tts", description="メッセージを読み上げます")
     async def vc_tts(self, interaction: discord.Interaction, message: str):
-        if not interaction.user.voice:
+        member = interaction.guild.get_member(interaction.user.id)
+        if not member or not member.voice:
             embed = discord.Embed(
                 description="先にボイスチャンネルに参加してください。",
                 color=discord.Color.red()
@@ -94,7 +105,7 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
             return
 
-        voice_channel = interaction.user.voice.channel
+        voice_channel = member.voice.channel
         guild_id = interaction.guild.id
         channel_id = voice_channel.id
 
