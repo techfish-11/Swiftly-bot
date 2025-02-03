@@ -67,7 +67,7 @@ class ProphetGrowth(commands.Cog):
                 embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
-                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server[...]")
+                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server discord.gg/evex")
                 
                 await interaction.followup.send(embed=embed, file=file)
             else:
@@ -76,7 +76,7 @@ class ProphetGrowth(commands.Cog):
                 embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
-                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server[...]")
+                embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server discord.gg/evex")
                 await progress_message.edit(content=None, embed=embed)
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
