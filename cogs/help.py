@@ -53,7 +53,7 @@ class Help(commands.Cog):
                 "- Wikipediaでものを検索できます。\n"
                 "- 曖昧なページも検索できます。\n"
                 "\n\n"
-                "ほかにもあります。/command-listで確認してください。"
+                "ほかにもあります。/help-commandで確認してください。"
             ),
             inline=False
         )
