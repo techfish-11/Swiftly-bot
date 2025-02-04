@@ -7,7 +7,7 @@ class FirstComment(commands.Cog):
         self.bot = bot
         self.first_message_cache = {}  # チャンネルごとのキャッシュ
 
-    @discord.app_commands.command(name='first-comment', description='このチャンネルの最初のメッセージへのリンクを取得します。')
+    @discord.app_commands.command(name="first-comment", description="このチャンネルの最初のメッセージへのリンクを取得します。")
     async def first_comment(self, interaction: discord.Interaction):
         channel = interaction.channel
         try:

@@ -50,7 +50,7 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
         except Exception as e:
             embed = discord.Embed(
-                description=f"エラーが発生しました: {str(e)}",
+                description=f"エラーが発生しました: {e}",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=False)
@@ -91,7 +91,7 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
         except Exception as e:
             embed = discord.Embed(
-                description=f"エラーが発生しました: {str(e)}",
+                description=f"エラーが発生しました: {e}",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=False)
@@ -150,7 +150,7 @@ class Voice(commands.Cog):
                 await interaction.response.send_message(embed=embed, ephemeral=False)
             except Exception as e:
                 embed = discord.Embed(
-                    description=f"エラーが発生しました: {str(e)}",
+                    description=f"エラーが発生しました: {e}",
                     color=discord.Color.red()
                 )
                 await interaction.response.send_message(embed=embed, ephemeral=False)

@@ -33,7 +33,7 @@ class ARIMAGrowth(commands.Cog):
             # Narrow down the search space for ARIMA parameters to reduce resource usage
             possible_orders = [(0, 1, 0), (1, 1, 0), (1, 1, 1), (2, 1, 0)]
             best_order = None
-            best_aic = float('inf')
+            best_aic = float("inf")
             for order in possible_orders:
                 try:
                     temp_model = ARIMA(y, order=order)
@@ -60,41 +60,41 @@ class ARIMAGrowth(commands.Cog):
 
             if show_graph:
                 plt.figure(figsize=(8, 5))
-                plt.scatter(join_dates, y, color='blue', label='Actual Data', alpha=0.6)
+                plt.scatter(join_dates, y, color="blue", label="Actual Data", alpha=0.6)
                 pred_dates = [datetime.fromordinal(int(X[-1][0] + i)) for i in range(len(predictions))]
-                plt.plot(pred_dates, predictions, color='red', label='Prediction', linewidth=2)
-                plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
-                plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date.date()}', linewidth=2)
-                plt.xlabel('Join Date')
-                plt.ylabel('Member Count')
-                plt.title('Server Growth Prediction (ARIMA)')
+                plt.plot(pred_dates, predictions, color="red", label="Prediction", linewidth=2)
+                plt.axhline(y=target, color="green", linestyle="--", label=f"Target: {target}", linewidth=2)
+                plt.axvline(x=found_date, color="purple", linestyle="--", label=f"Predicted: {found_date.date()}", linewidth=2)
+                plt.xlabel("Join Date")
+                plt.ylabel("Member Count")
+                plt.title("Server Growth Prediction (ARIMA)")
                 plt.legend()
-                plt.grid(True, linestyle='--', alpha=0.7)
+                plt.grid(True, linestyle="--", alpha=0.7)
 
                 buf = io.BytesIO()
-                plt.savefig(buf, format='png')
+                plt.savefig(buf, format="png")
                 buf.seek(0)
                 plt.close()
 
-                file = discord.File(buf, filename='arima_growth_prediction.png')
+                file = discord.File(buf, filename="arima_growth_prediction.png")
                 embed = discord.Embed(
                     title="Server Growth Prediction (ARIMA)",
-                    description=f'{target}人に達する予測日: {found_date.date()}',
+                    description=f"{target}人に達する予測日: {found_date.date()}",
                     color=discord.Color.blue()
                 )
                 embed.set_image(url="attachment://arima_growth_prediction.png")
             else:
                 embed = discord.Embed(
                     title="Server Growth Prediction (ARIMA)",
-                    description=f'{target}人に達する予測日: {found_date.date()}',
+                    description=f"{target}人に達する予測日: {found_date.date()}",
                     color=discord.Color.blue()
                 )
 
             embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
             embed.add_field(name="最適パラメータ", value=str(best_order), inline=True)
             embed.add_field(name="AIC", value=f"{model_fit.aic:.2f}", inline=True)
-            embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
-            embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
+            embed.add_field(name="最初の参加日", value=join_dates[0].strftime("%Y-%m-%d"), inline=True)
+            embed.add_field(name="最新の参加日", value=join_dates[-1].strftime("%Y-%m-%d"), inline=True)
             embed.add_field(name="予測モデル", value="ARIMA", inline=True)
             embed.set_footer(
                 text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。この機能はベータバージョンです。")

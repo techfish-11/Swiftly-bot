@@ -11,12 +11,12 @@ class Sandbox(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
-    @discord.app_commands.command(name='sandbox', description='JavaScript コードをサンドボックスで実行し、結果を返します。')
+    @discord.app_commands.command(name="sandbox", description="JavaScript コードをサンドボックスで実行し、結果を返します。")
     async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
-        url = 'https://js-sandbox.evex.land/'
-        headers = {'Content-Type': 'application/json'}
-        payload = {'code': code}
+        url = "https://js-sandbox.evex.land/"
+        headers = {"Content-Type": "application/json"}
+        payload = {"code": code}
 
         try:
             start_time = time.monotonic()
@@ -28,14 +28,14 @@ class Sandbox(commands.Cog):
                     result = await response.text()
                     result_json = json.loads(result)
                     embed = discord.Embed(title="Sandbox Execution Result", color=discord.Color.green())
-                    embed.add_field(name="Exit Code", value=result_json.get('exitcode', 'N/A'), inline=False)
-                    embed.add_field(name="Message", value=f'```{result_json.get("message", "")}```', inline=False)
-                    embed.add_field(name="Execution Time", value=f'{elapsed_time:.2f} seconds', inline=False)
+                    embed.add_field(name="Exit Code", value=result_json.get("exitcode", "N/A"), inline=False)
+                    embed.add_field(name="Message", value=f"```{result_json.get('message', '')}```", inline=False)
+                    embed.add_field(name="Execution Time", value=f"{elapsed_time:.2f} seconds", inline=False)
                     embed.set_footer(text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
                     await ctx.followup.send(embed=embed)
                 else:
                     embed = discord.Embed(title="Error", description="Failed to execute code.", color=discord.Color.red())
-                    embed.add_field(name="Execution Time", value=f'{elapsed_time:.2f} seconds', inline=False)
+                    embed.add_field(name="Execution Time", value=f"{elapsed_time:.2f} seconds", inline=False)
                     embed.set_footer(text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
                     await ctx.followup.send(embed=embed)
         except Exception as e:
@@ -48,15 +48,15 @@ class Sandbox(commands.Cog):
         if message.author.bot:
             return
 
-        if message.content.startswith('?sandbox'):
-            code = message.content[len('?sandbox '):]
+        if message.content.startswith("?sandbox"):
+            code = message.content[len("?sandbox "):]
             progress_message = await message.channel.send("実行中・・・")
             await self.execute_sandbox(message, code, progress_message)
 
     async def execute_sandbox(self, message, code: str, progress_message: discord.Message):
-        url = 'https://js-sandbox.evex.land/'
-        headers = {'Content-Type': 'application/json'}
-        payload = {'code': code}
+        url = "https://js-sandbox.evex.land/"
+        headers = {"Content-Type": "application/json"}
+        payload = {"code": code}
 
         try:
             start_time = time.monotonic()
@@ -70,11 +70,11 @@ class Sandbox(commands.Cog):
                     embed = discord.Embed(
                         title="Sandbox Execution Result", color=discord.Color.green())
                     embed.add_field(name="Exit Code", value=result_json.get(
-                        'exitcode', 'N/A'), inline=False)
+                        "exitcode", "N/A"), inline=False)
                     embed.add_field(
-                        name="Message", value=f'```{result_json.get("message", "")}```', inline=False)
+                        name="Message", value=f"```{result_json.get('message', '')}```", inline=False)
                     embed.add_field(
-                        name="Execution Time", value=f'{elapsed_time:.2f} seconds', inline=False)
+                        name="Execution Time", value=f"{elapsed_time:.2f} seconds", inline=False)
                     embed.set_footer(
                         text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
                     await progress_message.edit(content=None, embed=embed)
@@ -82,7 +82,7 @@ class Sandbox(commands.Cog):
                     embed = discord.Embed(
                         title="Error", description="Failed to execute code.", color=discord.Color.red())
                     embed.add_field(
-                        name="Execution Time", value=f'{elapsed_time:.2f} seconds', inline=False)
+                        name="Execution Time", value=f"{elapsed_time:.2f} seconds", inline=False)
                     embed.set_footer(
                         text="API Powered by EvexDevelopers | Support Server: https://discord.gg/evex")
                     await progress_message.edit(content=None, embed=embed)
