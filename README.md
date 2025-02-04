@@ -6,47 +6,47 @@ Swiftly, a multi-function Discord bot
 ## Swiftlyのコマンド一覧
 以下はSwiftlyが提供するコマンドとその説明です。
 
-- `/wikipedia`  
+- `/wikipedia`
     Wikipediaで検索します。
 
-- `/prophet_growth`  
+- `/prophet_growth`
     サーバーの成長を予測します。Prophetは大規模サーバー向けです。
 
-- `/arima_growth`  
+- `/arima_growth`
     サーバーの成長をARIMAモデルで予測します。
 
-- `/help`  
+- `/help`
     Swiftlyのヘルプを表示します。
 
-- `/captcha`  
+- `/captcha`
     Generate a CAPTCHA image.
 
-- `/youyaku`  
+- `/youyaku`
     指定したチャンネルのメッセージを要約します。
 
-- `/ping`  
+- `/ping`
     Replies with pong and latency.
 
-- `/help-command`  
+- `/help-command`
     Swiftlyが提供するすべてのコマンドを表示します。
 
-- `/time`  
+- `/time`
     現在の時間を取得します。
 
-- `/moji-bake`  
+- `/moji-bake`
     文字をわざと文字化けさせます。
 
-- `/first-comment`  
+- `/first-comment`
     このチャンネルの最初のメッセージへのリンクを取得します。
 
-- `/growth`  
+- `/growth`
     サーバーの成長を予測します。全サーバー向きです。
 
-- `/base64`  
+- `/base64`
     Base64エンコードまたはデコードします。
 
-- `/status`  
+- `/status`
     ボットのステータスを確認します。
 
-- `/botadmin`  
+- `/botadmin`
     Bot管理コマンド

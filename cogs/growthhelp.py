@@ -1,11 +1,12 @@
 import discord
 from discord.ext import commands
 
+
 class GrowthHelp(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.Command(name="growth-help", description="成長予測コマンドのヘルプを表示します。")
+    @discord.app_commands.command(name="growth-help", description="成長予測コマンドのヘルプを表示します。")
     async def growth_help(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="成長予測コマンドのヘルプ",
@@ -52,6 +53,7 @@ class GrowthHelp(commands.Cog):
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
         await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot):
     cog = GrowthHelp(bot)

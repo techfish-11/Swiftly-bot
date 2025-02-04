@@ -1,11 +1,13 @@
+import asyncio
+import os
+import tempfile
+
+import edge_tts
 import discord
 from discord.ext import commands
-import edge_tts
-import tempfile
-import os
-import asyncio
 
 VOICE = "ja-JP-NanamiNeural"  # Predefined voice
+
 
 class Voice(commands.Cog):
     def __init__(self, bot):
@@ -48,7 +50,7 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
         except Exception as e:
             embed = discord.Embed(
-                description=f"エラーが発生しました: {str(e)}",
+                description=f"エラーが発生しました: {e}",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=False)
@@ -89,7 +91,7 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
         except Exception as e:
             embed = discord.Embed(
-                description=f"エラーが発生しました: {str(e)}",
+                description=f"エラーが発生しました: {e}",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=False)
@@ -137,7 +139,8 @@ class Voice(commands.Cog):
 
                 voice_client.play(
                     discord.FFmpegPCMAudio(temp_filename),
-                    after=lambda e: os.remove(temp_filename) if os.path.exists(temp_filename) else None
+                    after=lambda e: os.remove(temp_filename) if os.path.exists(
+                        temp_filename) else None
                 )
 
                 embed = discord.Embed(
@@ -147,7 +150,7 @@ class Voice(commands.Cog):
                 await interaction.response.send_message(embed=embed, ephemeral=False)
             except Exception as e:
                 embed = discord.Embed(
-                    description=f"エラーが発生しました: {str(e)}",
+                    description=f"エラーが発生しました: {e}",
                     color=discord.Color.red()
                 )
                 await interaction.response.send_message(embed=embed, ephemeral=False)
@@ -158,6 +161,7 @@ class Voice(commands.Cog):
         if voice_client:
             if len(voice_client.channel.members) == 1:  # ボットだけが残っている場合
                 await voice_client.disconnect()
+
 
 async def setup(bot):
     await bot.add_cog(Voice(bot))

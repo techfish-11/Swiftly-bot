@@ -1,11 +1,12 @@
 import discord
 from discord.ext import commands
 
+
 class Ping(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name='ping', description='Replies with pong and latency.')
+    @discord.app_commands.command(name="ping", description="Replies with pong and latency.")
     async def ping(self, interaction: discord.Interaction) -> None:
         latency = self.bot.latency * 1000  # Convert to milliseconds
 
@@ -16,6 +17,7 @@ class Ping(commands.Cog):
         )
 
         await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(Ping(bot))
