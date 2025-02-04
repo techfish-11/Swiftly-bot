@@ -11,7 +11,7 @@ class Captcha(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()  # セッションをクラスレベルで作成
 
-    @discord.app_commands.command(name="captcha", description="Generate a CAPTCHA image.")
+    @discord.app_commands.command(name="captcha", description="CAPTCHA imageを生成します")
     @discord.app_commands.describe(difficulty="Difficulty level of the CAPTCHA (1-10)")
     async def captcha(self, ctx: discord.Interaction, difficulty: int = 1) -> None:
         if difficulty < 1 or difficulty > 10:
