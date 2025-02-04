@@ -5,7 +5,7 @@ class Sizi(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="sizi", description="指定した内容を指定した相手に指示します。")
+    @discord.app_commands.command(name="指示", description="指定した内容を指定した相手に指示します。")
     async def sizi(self, interaction: discord.Interaction, content: str, target: discord.Member):
         try:
             # Create an embed with the instruction
