@@ -11,7 +11,7 @@ class Sizi(commands.Cog):
             # Create an embed with the instruction
             embed = discord.Embed(
                 title="指示",
-                description=f"@{interaction.user.display_name}が、@{target.display_name}に「{content}」を指示しました。",
+                description=f"{interaction.user.mention}が、{target.mention}に「{content}」を指示しました。",
                 color=discord.Color.blue()
             )
             await interaction.response.send_message(embed=embed)
