@@ -1,9 +1,10 @@
+import asyncio
+import os
+import tempfile
+
+import edge_tts
 import discord
 from discord.ext import commands
-import edge_tts
-import tempfile
-import os
-import asyncio
 
 VOICE = "ja-JP-NanamiNeural"  # Predefined voice
 

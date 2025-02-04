@@ -1,15 +1,14 @@
+import asyncio
+import io
+from datetime import datetime
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
 import discord
 from discord.ext import commands
-import numpy as np
-from datetime import datetime
-from sklearn.linear_model import LinearRegression
-import io
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.model_selection import KFold, cross_val_score
-from statsmodels.tsa.arima.model import ARIMA
-import asyncio
-
-import matplotlib.pyplot as plt
 
 
 class Growth(commands.Cog):

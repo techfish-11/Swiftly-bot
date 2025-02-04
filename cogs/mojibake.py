@@ -1,7 +1,8 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
 import re
+
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 
 class MojiBake(commands.Cog):
@@ -11,8 +12,7 @@ class MojiBake(commands.Cog):
     def sanitize_input(self, content: str) -> str:
         """入力された文字列からメンションを無効化する"""
         sanitized = re.sub(r'@', '＠', content)  # すべての@を全角に置き換え
-        sanitized = re.sub(r'@(everyone|here)', '＠\\1',
-                           sanitized)  # @everyone, @hereも無効化
+        sanitized = re.sub(r'@(everyone|here)', '＠\\1', sanitized)  # @everyone, @hereも無効化
         return sanitized
 
     @app_commands.command(name="moji-bake", description="文字をわざと文字化けさせます")

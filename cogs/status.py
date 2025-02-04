@@ -1,9 +1,10 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-import aiohttp
-import time
 import asyncio
+import time
+
+import aiohttp
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 
 class Status(commands.Cog):

@@ -1,6 +1,7 @@
+import aiohttp
+
 import discord
 from discord.ext import commands
-import aiohttp
 
 
 class Time(commands.Cog):

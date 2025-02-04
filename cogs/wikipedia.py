@@ -1,11 +1,13 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-import wikipedia
-import re
 import asyncio
+import re
 from functools import lru_cache
-from typing import Optional, Tuple, List
+from typing import List, Tuple
+
+import wikipedia
+
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 
 class WikipediaCog(commands.Cog):

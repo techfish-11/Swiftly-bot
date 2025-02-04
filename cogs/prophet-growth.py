@@ -1,16 +1,18 @@
+import asyncio
+import io
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 import discord
 from discord.ext import commands
-import numpy as np
-from datetime import datetime
-import pandas as pd
-import io
-import matplotlib.pyplot as plt
-import asyncio
 
 try:
     from prophet import Prophet
 except ImportError:
     from fbprophet import Prophet
+
 
 
 class ProphetGrowth(commands.Cog):

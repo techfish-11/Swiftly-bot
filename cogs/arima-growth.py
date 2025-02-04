@@ -1,12 +1,12 @@
-import discord
-from discord.ext import commands
-import numpy as np
 from datetime import datetime
-from sklearn.linear_model import LinearRegression
 import io
+
+import numpy as np
+import matplotlib.pyplot as plt
 from statsmodels.tsa.arima.model import ARIMA
 
-import matplotlib.pyplot as plt
+import discord
+from discord.ext import commands
 
 
 class ARIMAGrowth(commands.Cog):

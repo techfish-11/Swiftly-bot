@@ -1,7 +1,8 @@
+import asyncio
+from datetime import datetime, timedelta
+
 import discord
 from discord.ext import commands
-from datetime import datetime, timedelta
-import asyncio
 
 
 class MessageAverage(commands.Cog):

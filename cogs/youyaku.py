@@ -1,7 +1,8 @@
+import re
+from collections import Counter
+
 import discord
 from discord.ext import commands
-from collections import Counter
-import re
 
 
 class Youyaku(commands.Cog):

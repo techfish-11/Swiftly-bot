@@ -1,7 +1,8 @@
-import discord
-from discord.ext import commands
 import base64
 import re
+
+import discord
+from discord.ext import commands
 
 
 class Base64(commands.Cog):
