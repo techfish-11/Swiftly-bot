@@ -1,10 +1,12 @@
 # Swiftly DiscordBot.
 # Developed by: TechFish_1
-import discord
-from discord.ext import commands
 import asyncio
 import os
+
 import dotenv
+import discord
+from discord.ext import commands
+
 
 intents = discord.Intents.default()
 intents.members = True
