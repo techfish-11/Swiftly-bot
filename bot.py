@@ -18,6 +18,7 @@ bot = commands.Bot(command_prefix='sw!', intents=intents, client=client)
 dotenv.load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}!')
@@ -35,9 +36,11 @@ async def on_ready():
     # アプリコマンドを同期（slashコマンド等）
     await bot.tree.sync()
 
+
 @bot.event
 async def on_command_error(ctx, error):
-        await ctx.send(f"エラーが発生しました")
+    print(f"Error: {error}")
+    await ctx.send("エラーが発生しました")
 
 if __name__ == '__main__':
     asyncio.run(bot.start(TOKEN))
