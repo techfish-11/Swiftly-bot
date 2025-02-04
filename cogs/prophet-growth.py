@@ -66,30 +66,21 @@ class ProphetGrowth(commands.Cog):
                 file = discord.File(
                     buf, filename='prophet_growth_prediction.png')
 
-                embed = discord.Embed(title="Server Growth Prediction with Prophet",
-                                      description=f'{target}人に達する予測日: {found_date}', color=discord.Color.blue())
-                embed.set_image(
-                    url="attachment://prophet_growth_prediction.png")
-                embed.add_field(name="データポイント数", value=str(
-                    len(join_dates)), inline=True)
-                embed.add_field(name="最初の参加日", value=join_dates[0].strftime(
-                    '%Y-%m-%d'), inline=True)
-                embed.add_field(
-                    name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
+                embed = discord.Embed(title="Server Growth Prediction with Prophet", description=f'{target}人に達する予測日: {found_date}', color=discord.Color.blue())
+                embed.set_image(url="attachment://prophet_growth_prediction.png")
+                embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
+                embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
+                embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
                 embed.set_footer(
                     text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server discord.gg/evex")
 
                 await interaction.followup.send(embed=embed, file=file)
             else:
-                embed = discord.Embed(title="Server Growth Prediction",
-                                      description=f"{target}人に達する予測日: {found_date}", color=discord.Color.green())
-                embed.add_field(name="データポイント数", value=str(
-                    len(join_dates)), inline=True)
-                embed.add_field(name="最初の参加日", value=join_dates[0].strftime(
-                    '%Y-%m-%d'), inline=True)
-                embed.add_field(
-                    name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
+                embed = discord.Embed(title="Server Growth Prediction", description=f"{target}人に達する予測日: {found_date}", color=discord.Color.green())
+                embed.add_field(name="データポイント数", value=str(len(join_dates)), inline=True)
+                embed.add_field(name="最初の参加日", value=join_dates[0].strftime('%Y-%m-%d'), inline=True)
+                embed.add_field(name="最新の参加日", value=join_dates[-1].strftime('%Y-%m-%d'), inline=True)
                 embed.add_field(name="予測モデル", value="Prophet", inline=True)
                 embed.set_footer(
                     text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。\nHosted by TechFish_Lab \nSupport Server discord.gg/evex")
@@ -98,7 +89,6 @@ class ProphetGrowth(commands.Cog):
             await interaction.followup.send(f"エラーが発生しました: {str(e)}")
 
     def fit_model(self, df):
-        import pandas as pd
         # 文字列の日付をdatetime型に変換（必要に応じて）
         df['ds'] = pd.to_datetime(df['ds'])
         # 改善されたモデル設定: changepointsの数を増やし、より詳細な週次季節性を追加
@@ -112,21 +102,17 @@ class ProphetGrowth(commands.Cog):
         return model
 
     def find_target_date(self, forecast, target):
-        for i, row in forecast.iterrows():
+        for _, row in forecast.iterrows():
             if row['yhat'] >= target:
                 return row['ds']
         return None
 
     def generate_plot(self, join_dates, forecast, target, found_date):
         plt.figure(figsize=(12, 8))
-        plt.scatter(join_dates, np.arange(1, len(join_dates) + 1),
-                    color='blue', label='Actual Data', alpha=0.6)
-        plt.plot(forecast['ds'], forecast['yhat'],
-                 color='red', label='Prediction', linewidth=2)
-        plt.axhline(y=target, color='green', linestyle='--',
-                    label=f'Target: {target}', linewidth=2)
-        plt.axvline(x=found_date, color='purple', linestyle='--',
-                    label=f'Predicted: {found_date}', linewidth=2)
+        plt.scatter(join_dates, np.arange(1, len(join_dates) + 1), color='blue', label='Actual Data', alpha=0.6)
+        plt.plot(forecast['ds'], forecast['yhat'], color='red', label='Prediction', linewidth=2)
+        plt.axhline(y=target, color='green', linestyle='--', label=f'Target: {target}', linewidth=2)
+        plt.axvline(x=found_date, color='purple', linestyle='--', label=f'Predicted: {found_date}', linewidth=2)
         plt.xlabel('Join Date', fontsize=14)
         plt.ylabel('Member Count', fontsize=14)
         plt.title('Server Growth Prediction with Prophet', fontsize=16)

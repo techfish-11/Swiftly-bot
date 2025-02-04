@@ -6,7 +6,7 @@ class BotAdmin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_check(self, ctx):
+    def cog_check(self, ctx):
         return ctx.author.id == 1241397634095120438
 
     @discord.app_commands.command(name="botadmin", description="Bot管理コマンド")

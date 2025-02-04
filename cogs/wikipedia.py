@@ -20,8 +20,7 @@ class WikipediaCog(commands.Cog):
         """メンションなどの無効化"""
         # メンションの無効化: @ → 全角＠に変換、@everyone, @hereを無効化
         sanitized = re.sub(r'@', '＠', content)
-        sanitized = re.sub(r'@(everyone|here)', '＠\\1',
-                           sanitized)  # @everyone, @hereを無効化
+        sanitized = re.sub(r'@(everyone|here)', '＠\\1', sanitized)  # @everyone, @hereを無効化
         return sanitized
 
     @lru_cache(maxsize=100)
@@ -75,7 +74,7 @@ class WikipediaCog(commands.Cog):
             await interaction.followup.send(embed=embed)
         except wikipedia.exceptions.PageError:
             await interaction.followup.send(f"**'{query}'** に該当するページが見つかりませんでした。")
-        except Exception as e:
+        except Exception:
             await interaction.followup.send("エラーが発生しました")
 
 

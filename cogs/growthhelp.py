@@ -6,7 +6,7 @@ class GrowthHelp(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.Command(name="growth-help", description="成長予測コマンドのヘルプを表示します。")
+    @discord.app_commands.command(name="growth-help", description="成長予測コマンドのヘルプを表示します。")
     async def growth_help(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="成長予測コマンドのヘルプ",

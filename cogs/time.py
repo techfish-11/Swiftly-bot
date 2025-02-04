@@ -15,10 +15,8 @@ class Time(commands.Cog):
                 if response.status == 200:
                     data = await response.json()
                     time = data.get('time')
-                    embed = discord.Embed(
-                        title="現在の時間", description=f"現在の時間は: {time}", color=discord.Color.blue())
-                    embed.add_field(
-                        name="APIエンドポイント", value='https://api1.sakana11.org/api/ntp', inline=False)
+                    embed = discord.Embed(title="現在の時間", description=f"現在の時間は: {time}", color=discord.Color.blue())
+                    embed.add_field(name="APIエンドポイント", value='https://api1.sakana11.org/api/ntp', inline=False)
                     await interaction.response.send_message(embed=embed)
                 else:
                     await interaction.response.send_message('APIから時間を取得できませんでした。')

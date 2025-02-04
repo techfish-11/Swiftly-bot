@@ -20,8 +20,6 @@ class CommandList(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-# Cogのセットアップ
-
 
 async def setup(bot):
     await bot.add_cog(CommandList(bot))

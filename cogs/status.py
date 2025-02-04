@@ -24,12 +24,9 @@ class Status(commands.Cog):
             title="Swiftly ステータス",
             color=discord.Color.blue()
         )
-        embed.add_field(name="Discord APIレイテンシ",
-                        value=f"{discord_latency}ms", inline=False)
-        embed.add_field(name="ネットワークルーターレイテンシ",
-                        value=f"{router_latency}ms", inline=False)
-        embed.add_field(
-            name="ステータス詳細", value="[こちらをご覧ください](https://status.sakana11.org)", inline=False)
+        embed.add_field(name="Discord APIレイテンシ", value=f"{discord_latency}ms", inline=False)
+        embed.add_field(name="ネットワークルーターレイテンシ", value=f"{router_latency}ms", inline=False)
+        embed.add_field( name="ステータス詳細", value="[こちらをご覧ください](https://status.sakana11.org)", inline=False)
 
         await interaction.response.send_message(embed=embed)
 

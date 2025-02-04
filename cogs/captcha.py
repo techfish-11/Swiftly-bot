@@ -26,14 +26,11 @@ class Captcha(commands.Cog):
                     data = await response.json()
                     image_data = data['image'].split(',')[1]
                     image_bytes = base64.b64decode(image_data)
-                    image_file = discord.File(
-                        BytesIO(image_bytes), filename='captcha.png')
+                    image_file = discord.File(BytesIO(image_bytes), filename='captcha.png')
                     answer = data['answer']
-                    embed = discord.Embed(
-                        title="CAPTCHA", description=f"Difficulty: {difficulty}", color=discord.Color.blue())
+                    embed = discord.Embed(title="CAPTCHA", description=f"Difficulty: {difficulty}", color=discord.Color.blue())
                     embed.set_image(url="attachment://captcha.png")
-                    embed.set_footer(
-                        text=f"Image provided by https://captcha.evex.land/client/\nAnswer: {answer}")
+                    embed.set_footer(text=f"Image provided by https://captcha.evex.land/client/\nAnswer: {answer}")
                     await ctx.followup.send(embed=embed, file=image_file)
                 else:
                     await ctx.followup.send('Failed to retrieve CAPTCHA.', ephemeral=True)
@@ -42,7 +39,7 @@ class Captcha(commands.Cog):
         except Exception as e:
             await ctx.followup.send(f'An unexpected error occurred: {str(e)}', ephemeral=True)
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.bot.loop.create_task(self.session.close())  # セッションをクローズ
 
 

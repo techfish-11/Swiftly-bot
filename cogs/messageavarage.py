@@ -20,8 +20,7 @@ class MessageAverage(commands.Cog):
         async def fetch_channel_history(channel):
             try:
                 async for message in channel.history(after=one_day_ago, oldest_first=True):
-                    hour_index = (message.created_at -
-                                  one_day_ago).seconds // 3600
+                    hour_index = (message.created_at - one_day_ago).seconds // 3600
                     message_counts[hour_index] += 1
             except (discord.Forbidden, discord.HTTPException):
                 pass
