@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+
 class GrowthHelp(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -52,6 +53,7 @@ class GrowthHelp(commands.Cog):
         embed.set_footer(text="この予測は統計モデルに基づくものであり、実際の結果を保証するものではありません。")
 
         await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot):
     cog = GrowthHelp(bot)

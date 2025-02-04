@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+
 class BotAdmin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -33,11 +34,14 @@ class BotAdmin(commands.Cog):
                 f"Loaded Cogs: {cogs}\n"
                 f"{shard_info}"
             )
-            embed = discord.Embed(title="デバッグ情報", description=debug_info, color=discord.Color.green())
+            embed = discord.Embed(
+                title="デバッグ情報", description=debug_info, color=discord.Color.green())
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
-            embed = discord.Embed(title="エラー", description="無効なオプションです。", color=discord.Color.red())
+            embed = discord.Embed(
+                title="エラー", description="無効なオプションです。", color=discord.Color.red())
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(BotAdmin(bot))

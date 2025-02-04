@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -57,9 +58,11 @@ class Help(commands.Cog):
             inline=False
         )
 
-        embed.set_footer(text="Hosted by TechFish_Lab \nSupport Server: https://discord.gg/evex")
+        embed.set_footer(
+            text="Hosted by TechFish_Lab \nSupport Server: https://discord.gg/evex")
 
         await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(Help(bot))

@@ -3,6 +3,7 @@ from discord.ext import commands
 import base64
 import re
 
+
 class Base64(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -17,8 +18,10 @@ class Base64(commands.Cog):
         try:
             if action == "encode":
                 # UTF-8 エンコードをBase64に変換
-                encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-                embed = discord.Embed(title="Base64 エンコード結果", description=encoded, color=discord.Color.blue())
+                encoded = base64.b64encode(
+                    content.encode('utf-8')).decode('utf-8')
+                embed = discord.Embed(
+                    title="Base64 エンコード結果", description=encoded, color=discord.Color.blue())
                 await interaction.response.send_message(embed=embed)
             elif action == "decode":
                 # Base64デコード
@@ -30,7 +33,8 @@ class Base64(commands.Cog):
                     await interaction.response.send_message("デコード結果に、@ everyone やメンション、役職メンションが含まれているため、デコードを拒否しました。")
                     return
 
-                embed = discord.Embed(title="Base64 デコード結果", description=decoded, color=discord.Color.green())
+                embed = discord.Embed(
+                    title="Base64 デコード結果", description=decoded, color=discord.Color.green())
                 await interaction.response.send_message(embed=embed)
         except base64.binascii.Error:
             # 無効なBase64形式のエラーハンドリング
@@ -40,5 +44,7 @@ class Base64(commands.Cog):
             await interaction.response.send_message(f"エラーが発生しました: {str(e)}")
 
 # Cogのセットアップ
+
+
 async def setup(bot):
     await bot.add_cog(Base64(bot))

@@ -7,6 +7,7 @@ import asyncio
 from functools import lru_cache
 from typing import Optional, Tuple, List
 
+
 class WikipediaCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -16,8 +17,9 @@ class WikipediaCog(commands.Cog):
     def sanitize_input(self, content: str) -> str:
         """メンションなどの無効化"""
         # メンションの無効化: @ → 全角＠に変換、@everyone, @hereを無効化
-        sanitized = re.sub(r'@', '＠', content)  
-        sanitized = re.sub(r'@(everyone|here)', '＠\\1', sanitized)  # @everyone, @hereを無効化
+        sanitized = re.sub(r'@', '＠', content)
+        sanitized = re.sub(r'@(everyone|here)', '＠\\1',
+                           sanitized)  # @everyone, @hereを無効化
         return sanitized
 
     @lru_cache(maxsize=100)
@@ -73,6 +75,7 @@ class WikipediaCog(commands.Cog):
             await interaction.followup.send(f"**'{query}'** に該当するページが見つかりませんでした。")
         except Exception as e:
             await interaction.followup.send("エラーが発生しました")
+
 
 async def setup(bot: commands.Bot):
     """Cogを非同期で追加するためのセットアップ関数"""

@@ -5,6 +5,7 @@ import aiohttp
 import time
 import asyncio
 
+
 class Status(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -22,9 +23,12 @@ class Status(commands.Cog):
             title="Swiftly ステータス",
             color=discord.Color.blue()
         )
-        embed.add_field(name="Discord APIレイテンシ", value=f"{discord_latency}ms", inline=False)
-        embed.add_field(name="ネットワークルーターレイテンシ", value=f"{router_latency}ms", inline=False)
-        embed.add_field(name="ステータス詳細", value="[こちらをご覧ください](https://status.sakana11.org)", inline=False)
+        embed.add_field(name="Discord APIレイテンシ",
+                        value=f"{discord_latency}ms", inline=False)
+        embed.add_field(name="ネットワークルーターレイテンシ",
+                        value=f"{router_latency}ms", inline=False)
+        embed.add_field(
+            name="ステータス詳細", value="[こちらをご覧ください](https://status.sakana11.org)", inline=False)
 
         await interaction.response.send_message(embed=embed)
 
@@ -41,6 +45,7 @@ class Status(commands.Cog):
             return "接続エラー"
         except asyncio.TimeoutError:
             return "タイムアウト"
+
 
 async def setup(bot: commands.Bot):
     """Cogを非同期で追加"""
