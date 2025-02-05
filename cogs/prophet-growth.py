@@ -3,16 +3,11 @@ import io
 
 import numpy as np
 import pandas as pd
+from prophet import Prophet
 import matplotlib.pyplot as plt
 
 import discord
 from discord.ext import commands
-
-try:
-    from prophet import Prophet
-except ImportError:
-    from fbprophet import Prophet
-
 
 
 class ProphetGrowth(commands.Cog):
