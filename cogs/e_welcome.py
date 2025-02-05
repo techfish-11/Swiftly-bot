@@ -56,11 +56,6 @@ class MemberWelcomeCog(commands.Cog):
 
         return config
 
-    def _write_yml(self):
-        """ Save configuration from evex.yml """
-        with open("evex.yml", "w", encoding="utf-8") as file:
-            yaml.safe_dump(self.config, file, allow_unicode=True)
-
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MemberWelcomeCog(bot))
