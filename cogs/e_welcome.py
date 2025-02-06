@@ -17,6 +17,7 @@ class MemberWelcomeCog(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         if member.guild.id != self.GUILD_ID:
             return
+        print("member join")
 
         guild = self.bot.get_guild(self.GUILD_ID)
         channel = guild.get_channel(self.CHANNEL_ID)
