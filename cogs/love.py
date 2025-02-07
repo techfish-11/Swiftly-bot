@@ -5,8 +5,10 @@ class LoveCalculator(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="love-calculator", description="2人の名前を入力して愛の相性を計算します")
-    async def love_calculator(self, interaction: discord.Interaction, name1: str, name2: str):
+    @discord.app_commands.command(name="love-calculator", description="2人のユーザーを選択して愛の相性を計算します")
+    async def love_calculator(self, interaction: discord.Interaction, user1: discord.User, user2: discord.User):
+        name1 = user1.name
+        name2 = user2.name
         love_score = self.calculate_love_score(name1, name2)
         message = self.get_love_message(love_score)
         await interaction.response.send_message(f'💖 **{name1}** と **{name2}** の愛の相性は {love_score}% です！\n{message}')
