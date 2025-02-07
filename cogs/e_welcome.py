@@ -35,7 +35,6 @@ class MemberWelcomeCog(commands.Cog):
             else:
                 remaining_members = self.TARGET_MEMBER_INCREMENT - remainder
                 message = (
-                    f"ようこそ！\n"
                     f"{member.mention} さん、ようこそ！\n"
                     f"現在のメンバー数: {len(guild.members)}人。\n"
                     f"あと {remaining_members} 人で {len(guild.members) + remaining_members}人達成です！"
