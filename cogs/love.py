@@ -11,7 +11,14 @@ class LoveCalculator(commands.Cog):
         name2 = user2.name
         love_score = self.calculate_love_score(name1, name2)
         message = self.get_love_message(love_score)
-        await interaction.response.send_message(f'💖 **{name1}** と **{name2}** の愛の相性は {love_score}% です！\n{message}')
+        
+        embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
+        embed.add_field(name="ユーザー1", value=name1, inline=True)
+        embed.add_field(name="ユーザー2", value=name2, inline=True)
+        embed.add_field(name="愛の相性", value=f"{love_score}%", inline=False)
+        embed.add_field(name="メッセージ", value=message, inline=False)
+        
+        await interaction.response.send_message(embed=embed)
 
     def calculate_love_score(self, name1, name2):
         combined_names = name1 + name2
