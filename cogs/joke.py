@@ -20,6 +20,11 @@ class LoveCalculator(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
+    @discord.app_commands.command(name="reverse", description="テキストを逆さまにして表示します")
+    async def reverse(self, interaction: discord.Interaction, text: str):
+        reversed_text = text[::-1]
+        await interaction.response.send_message(reversed_text)
+
     def calculate_love_score(self, name1, name2):
         combined_names = name1 + name2
         total_ascii_value = sum(ord(char) for char in combined_names)

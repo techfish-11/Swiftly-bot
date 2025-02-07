@@ -9,3 +9,4 @@ statsmodels
 prophet
 edge-tts
 wikipedia
+opencv-python
