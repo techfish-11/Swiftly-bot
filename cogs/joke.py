@@ -16,7 +16,7 @@ class LoveCalculator(commands.Cog):
             name1 = user1.name
             name2 = user2.name
             love_score = self.K7LoveCalc(name1, name2)
-            message = self.get_love_message(love_score[0], love_score[1], love_score[2])
+            message = self.get_love_message(name1, name2, love_score[0], love_score[1], love_score[2])
             embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
             #embed.add_field(name="ユーザー1", value=name1, inline=True)
             #embed.add_field(name="ユーザー2", value=name2, inline=True)
@@ -34,18 +34,24 @@ class LoveCalculator(commands.Cog):
         random.seed(combined_names)
         user1_to_user2_friend = random.randint(0, 100)
         user2_to_user1_friend = random.randint(0, 100)
-        user1_to_user2_sex = random.randint(0, 100)
-        user2_to_user1_sex = random.randint(0, 100)
+        user1_to_user2_sex = random.randint(0, user1_to_user2_friend)
+        user2_to_user1_sex = random.randint(0, user2_to_user1_friend)
         love_score = (user1_to_user2_friend + user2_to_user1_friend) // 2
         if name1 > name2:
             return [love_score, user1_to_user2_friend, user2_to_user1_friend, user1_to_user2_sex, user2_to_user1_sex]
         else:
             return [love_score, user2_to_user1_friend, user1_to_user2_friend, user2_to_user1_sex, user1_to_user2_sex]
 
-    def get_love_message(self, score, user1_to_user2, user2_to_user1):
-        if abs(user1_to_user2 - user2_to_user1) > 30:
+    def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
+        if user1_to_user2 - user2_to_user1 > 70:
+            return user1_name+"よ、諦めろ。"
+        elif user2_to_user1 - user1_to_user2 > 70:
+            return user2_name+"よ、諦めろ。"
+        elif abs(user1_to_user2 - user2_to_user1) > 50:
+            return "視界に入れてない可能性があります。"
+        elif abs(user1_to_user2 - user2_to_user1) > 30:
             return "片思いの可能性があります。💔"
-        if score > 80:
+        elif score > 80:
             return "素晴らしい相性です！💞"
         elif score > 60:
             return "とても良い相性です！😊"
