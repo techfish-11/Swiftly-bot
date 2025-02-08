@@ -50,3 +50,28 @@ Swiftly, a multi-function Discord bot
 
 - `/botadmin`
     Bot管理コマンド
+
+## コントリビューターのみなさんへ
+
+**Botのテスト方法**
+
+1. リポジトリをクローン
+```
+git clone https://github.com/evex-dev/Swiftly-bot.git
+```
+
+2. Python仮想環境を作成
+
+3. 仮想環境をアクティベート
+
+4. 依存関係をインストール
+```
+pip install -r requirements.txt
+```
+
+5. tokenを.envファイルに記載
+```env
+DISCORD_TOKEN=<token>
+```
+
+6. 実行
