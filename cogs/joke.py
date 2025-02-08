@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import random
 
 class LoveCalculator(commands.Cog):
     def __init__(self, bot):
@@ -9,13 +10,17 @@ class LoveCalculator(commands.Cog):
     async def love_calculator(self, interaction: discord.Interaction, user1: discord.User, user2: discord.User):
         name1 = user1.name
         name2 = user2.name
-        love_score = self.calculate_love_score(name1, name2)
+        id1 = user1.id
+        id2 = user2.id
+        love_score = self.calculate_love_score(id1, id2)
         message = self.get_love_message(love_score)
         
         embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
         embed.add_field(name="ユーザー1", value=name1, inline=True)
         embed.add_field(name="ユーザー2", value=name2, inline=True)
-        embed.add_field(name="愛の相性", value=f"{love_score}%", inline=False)
+        embed.add_field(name=name1+"→"+name2, value=f"{love_score[1]}%", inline=False)
+        embed.add_field(name=name2+"→"+name1, value=f"{love_score[2]}%", inline=False)
+        embed.add_field(name="総合相性", value=f"{love_score[0]}%", inline=False)
         embed.add_field(name="メッセージ", value=message, inline=False)
         
         await interaction.response.send_message(embed=embed)
@@ -25,11 +30,15 @@ class LoveCalculator(commands.Cog):
         reversed_text = text[::-1]
         await interaction.response.send_message(reversed_text)
 
-    def calculate_love_score(self, name1, name2):
-        combined_names = name1 + name2
-        total_ascii_value = sum(ord(char) for char in combined_names)
-        love_score = total_ascii_value % 101  # Ensure the score is between 0 and 100
-        return love_score
+    def K7LoveCalc(id0: int, id1: int):
+        random.seed(id0+id1)
+        rands = []
+        for i in range(3):
+            rands[i] = random.randint(0,100)
+        if id0 > id1:
+            return [rands[0], rands[1], rands[2]]
+        else:
+            return [rands[0], rands[2], rands[1]]
 
     def get_love_message(self, score):
         if score > 80:
