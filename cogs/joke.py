@@ -30,7 +30,7 @@ class LoveCalculator(commands.Cog):
         reversed_text = text[::-1]
         await interaction.response.send_message(reversed_text)
 
-    def K7LoveCalc(id0: int, id1: int):
+    def K7LoveCalc(self, id0: int, id1: int):
         random.seed(id0+id1)
         rands = []
         for i in range(3):
