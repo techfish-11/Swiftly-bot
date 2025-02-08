@@ -4,6 +4,7 @@ from discord import app_commands
 import numpy as np
 import cv2
 import os
+import asyncio
 
 class LifeGame(commands.Cog):
     def __init__(self, bot):
@@ -12,14 +13,18 @@ class LifeGame(commands.Cog):
     @app_commands.command(name='lifegame', description='Start a Life Game simulation')
     @app_commands.describe(probability='Probability of a cell being alive at the start (0.0 to 1.0)')
     async def lifegame(self, interaction: discord.Interaction, probability: float = 0.5):
+        await interaction.response.send_message("ライフゲームのシミュレーションを開始します...")
+
+        # Validate probability
+        if not (0.0 <= probability <= 1.0):
+            await interaction.followup.send("確率は0.0から1.0の間で指定してください。")
+            return
+
+        # Run the simulation in a separate task
+        asyncio.create_task(self.run_simulation(interaction, probability))
+
+    async def run_simulation(self, interaction: discord.Interaction, probability: float):
         try:
-            await interaction.response.send_message("ライフゲームのシミュレーションを開始します...")
-
-            # Validate probability
-            if not (0.0 <= probability <= 1.0):
-                await interaction.followup.send("確率は0.0から1.0の間で指定してください。")
-                return
-
             # Initialize the game board
             board_size = 50
             board = np.random.choice([0, 1], size=(board_size, board_size), p=[1-probability, probability])
