@@ -11,26 +11,29 @@ class LifeGame(commands.Cog):
 
     @app_commands.command(name='lifegame', description='Start a Life Game simulation')
     async def lifegame(self, interaction: discord.Interaction):
-        await interaction.response.send_message("ライフゲームのシミュレーションを開始します...")
+        try:
+            await interaction.response.send_message("ライフゲームのシミュレーションを開始します...")
 
-        # Initialize the game board
-        board_size = 50
-        board = np.random.choice([0, 1], size=(board_size, board_size))
+            # Initialize the game board
+            board_size = 50
+            board = np.random.choice([0, 1], size=(board_size, board_size))
 
-        # Create a video writer using AV1 codec
-        video_filename = 'lifegame_simulation.mp4'
-        fourcc = cv2.VideoWriter_fourcc(*'avc1')
-        out = cv2.VideoWriter(video_filename, fourcc, 30.0, (board_size * 10, board_size * 10))
+            # Create a video writer using AV1 codec
+            video_filename = 'lifegame_simulation.mp4'
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')
+            out = cv2.VideoWriter(video_filename, fourcc, 30.0, (board_size * 10, board_size * 10))
 
-        for _ in range(100):  # Run for 100 generations
-            frame = self.create_frame(board)
-            out.write(frame)
-            board = self.next_generation(board)
+            for _ in range(100):  # Run for 100 generations
+                frame = self.create_frame(board)
+                out.write(frame)
+                board = self.next_generation(board)
 
-        out.release()
+            out.release()
 
-        await interaction.followup.send(file=discord.File(video_filename))
-        os.remove(video_filename)
+            await interaction.followup.send(file=discord.File(video_filename))
+            os.remove(video_filename)
+        except Exception as e:
+            await interaction.followup.send(f"エラーが発生しました: {e}")
 
     def create_frame(self, board):
         cell_size = 10
