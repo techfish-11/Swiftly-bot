@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import random
+import time
 
 class LoveCalculator(commands.Cog):
     def __init__(self, bot):
@@ -26,10 +27,11 @@ class LoveCalculator(commands.Cog):
             await interaction.response.send_message(embed=embed)
         
     def K7LoveCalc(self, name1: str, name2: str):
+        current_date = time.strftime("%Y-%m-%d")
         if name1 > name2:
-            combined_names = name1 + name2
+            combined_names = name1 + name2 + current_date
         else:
-            combined_names = name2 + name1
+            combined_names = name2 + name1 + current_date
         random.seed(combined_names)
         user1_to_user2_friend = random.randint(0, 100)
         user2_to_user1_friend = random.randint(0, 100)
