@@ -10,3 +10,4 @@ prophet
 edge-tts
 wikipedia
 opencv-python
+pyyaml

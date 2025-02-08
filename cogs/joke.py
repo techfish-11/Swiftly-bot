@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import random
 import math
+import time
 
 prog_langs = ["C++", "Rust", "Python", "JavaScript", "Go", "Java", "TypeScript", "Swift", "Kotlin", "PHP", "Ruby"]
 nice_lang = {"C++": "Rust", "Rust": "Python", "Python": "JavaScript", "JavaScript": "Go", "Go": "Java", "Java": "TypeScript", "TypeScript": "Swift", "Swift": "Kotlin", "Kotlin": "PHP", "PHP": "Ruby", "Ruby": "C++"}
@@ -23,10 +24,9 @@ class LoveCalculator(commands.Cog):
             love_score = self.K7LoveCalc(name1, name2)
             message = self.get_love_message(name1, name2, love_score[0], love_score[1], love_score[2])
             embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
-            #embed.add_field(name="ユーザー1", value=name1, inline=True)
-            #embed.add_field(name="ユーザー2", value=name2, inline=True)
-            embed.add_field(name=name1+"→"+name2, value=f"好感度：{love_score[1]}% 性欲：{love_score[3]}", inline=False)
-            embed.add_field(name=name2+"→"+name1, value=f"好感度：{love_score[2]}% 性欲：{love_score[4]}", inline=False)
+            embed.add_field(name="ユーザー1", value=name1, inline=True)
+            embed.add_field(name="ユーザー2", value=name2, inline=True)
+            embed.add_field(name="相性結果", value=f"**{name1} → {name2}**\n好感度：{love_score[1]}%\n性欲：{love_score[3]}\n\n**{name2} → {name1}**\n好感度：{love_score[2]}%\n性欲：{love_score[4]}", inline=False)
             embed.add_field(name="総合相性（好感度平均）", value=f"{love_score[0]}%", inline=False)
             embed.add_field(name="メッセージ", value=message, inline=False)
             await interaction.response.send_message(embed=embed)
@@ -114,12 +114,18 @@ class LoveCalculator(commands.Cog):
                 embed.add_field(name="引き分け", value="10ターン以内に戦いが終わらなかった。\n"+name1+"の体力："+str(hp1)+"/n"+name2+"の体力："+str(hp2), inline=False)
             await interaction.response.send_message(embed=embed)
         
+
     def K7LoveCalc(self, name1: str, name2: str):
+        # Use only day of the current date (1～31) as a slight influence
+        current_day = int(time.strftime("%d"))
         if name1 > name2:
-            combined_names = name1 + name2
+            base = name1 + name2
         else:
-            combined_names = name2 + name1
-        random.seed(combined_names)
+            base = name2 + name1
+        # The date adds only a small offset to the seed
+        seed_value = hash(base) + current_day
+        random.seed(seed_value)
+
         user1_to_user2_friend = random.randint(0, 100)
         user2_to_user1_friend = random.randint(0, 100)
         user1_to_user2_sex = random.randint(0, user1_to_user2_friend)
@@ -140,9 +146,9 @@ class LoveCalculator(commands.Cog):
 
     def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
         if user1_to_user2 - user2_to_user1 > 70:
-            return user1_name+"よ、諦めろ。"
+            return user1_name + "よ、諦めろ。"
         elif user2_to_user1 - user1_to_user2 > 70:
-            return user2_name+"よ、諦めろ。"
+            return user2_name + "よ、諦めろ。"
         elif abs(user1_to_user2 - user2_to_user1) > 50:
             return "視界に入れてない可能性があります。"
         elif abs(user1_to_user2 - user2_to_user1) > 30:
