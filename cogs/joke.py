@@ -13,7 +13,7 @@ class LoveCalculator(commands.Cog):
         id1 = user1.id
         id2 = user2.id
         love_score = self.K7LoveCalc(id1, id2)
-        message = self.get_love_message(love_score)
+        message = self.get_love_message(love_score[0])
         
         embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
         embed.add_field(name="ユーザー1", value=name1, inline=True)
