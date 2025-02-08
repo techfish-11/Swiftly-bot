@@ -12,35 +12,29 @@ class LoveCalculator(commands.Cog):
         name2 = user2.name
         id1 = user1.id
         id2 = user2.id
-        love_score, user1_to_user2, user2_to_user1, mutual_love = self.K7LoveCalc(id1, id2)
-        message = self.get_love_message(love_score)
+        love_score = self.K7LoveCalc(id1, id2)
+        message = self.get_love_message(love_score[0], love_score[1], love_score[2])
         
         embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
         embed.add_field(name="ユーザー1", value=name1, inline=True)
         embed.add_field(name="ユーザー2", value=name2, inline=True)
-        embed.add_field(name=name1+"→"+name2, value=f"{user1_to_user2}%", inline=False)
-        embed.add_field(name=name2+"→"+name1, value=f"{user2_to_user1}%", inline=False)
-        embed.add_field(name="総合相性", value=f"{love_score}%", inline=False)
-        embed.add_field(name="片思い", value="あり" if user1_to_user2 > 50 or user2_to_user1 > 50 else "なし", inline=False)
-        embed.add_field(name="両想い", value="あり" if mutual_love else "なし", inline=False)
+        embed.add_field(name=name1+"→"+name2, value=f"{love_score[1]}%", inline=False)
+        embed.add_field(name=name2+"→"+name1, value=f"{love_score[2]}%", inline=False)
+        embed.add_field(name="総合相性", value=f"{love_score[0]}%", inline=False)
         embed.add_field(name="メッセージ", value=message, inline=False)
         
         await interaction.response.send_message(embed=embed)
-
-    @discord.app_commands.command(name="reverse", description="テキストを逆さまにして表示します")
-    async def reverse(self, interaction: discord.Interaction, text: str):
-        reversed_text = text[::-1]
-        await interaction.response.send_message(reversed_text)
-
+        
     def K7LoveCalc(self, id0: int, id1: int):
         random.seed(id0 + id1)
         user1_to_user2 = random.randint(0, 100)
         user2_to_user1 = random.randint(0, 100)
         love_score = (user1_to_user2 + user2_to_user1) // 2
-        mutual_love = user1_to_user2 > 50 and user2_to_user1 > 50
-        return love_score, user1_to_user2, user2_to_user1, mutual_love
+        return [love_score, user1_to_user2, user2_to_user1]
 
-    def get_love_message(self, score):
+    def get_love_message(self, score, user1_to_user2, user2_to_user1):
+        if abs(user1_to_user2 - user2_to_user1) > 30:
+            return "片思いの可能性があります。💔"
         if score > 80:
             return "素晴らしい相性です！💞"
         elif score > 60:
