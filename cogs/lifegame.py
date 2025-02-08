@@ -10,13 +10,19 @@ class LifeGame(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name='lifegame', description='Start a Life Game simulation')
-    async def lifegame(self, interaction: discord.Interaction):
+    @app_commands.describe(probability='Probability of a cell being alive at the start (0.0 to 1.0)')
+    async def lifegame(self, interaction: discord.Interaction, probability: float = 0.5):
         try:
             await interaction.response.send_message("ライフゲームのシミュレーションを開始します...")
 
+            # Validate probability
+            if not (0.0 <= probability <= 1.0):
+                await interaction.followup.send("確率は0.0から1.0の間で指定してください。")
+                return
+
             # Initialize the game board
             board_size = 50
-            board = np.random.choice([0, 1], size=(board_size, board_size))
+            board = np.random.choice([0, 1], size=(board_size, board_size), p=[1-probability, probability])
 
             # Create a video writer using VP9 codec
             video_filename = 'lifegame_simulation.webm'
