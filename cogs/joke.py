@@ -31,14 +31,11 @@ class LoveCalculator(commands.Cog):
         await interaction.response.send_message(reversed_text)
 
     def K7LoveCalc(self, id0: int, id1: int):
-        random.seed(id0+id1)
-        rands = []
-        for i in range(3):
-            rands.append(random.randint(0,100))
-        if id0 > id1:
-            return [rands[0], rands[1], rands[2]]
-        else:
-            return [rands[0], rands[2], rands[1]]
+        random.seed(id0 + id1)
+        user1_to_user2 = random.randint(0, 100)
+        user2_to_user1 = random.randint(0, 100)
+        love_score = (user1_to_user2 + user2_to_user1) // 2
+        return [love_score, user1_to_user2, user2_to_user1]
 
     def get_love_message(self, score):
         if score > 80:
