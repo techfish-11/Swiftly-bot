@@ -18,11 +18,11 @@ class LoveCalculator(commands.Cog):
             love_score = self.K7LoveCalc(name1, name2)
             message = self.get_love_message(love_score[0], love_score[1], love_score[2])
             embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
-            embed.add_field(name="ユーザー1", value=name1, inline=True)
-            embed.add_field(name="ユーザー2", value=name2, inline=True)
-            embed.add_field(name=name1+"→"+name2, value=f"{love_score[1]}%", inline=False)
-            embed.add_field(name=name2+"→"+name1, value=f"{love_score[2]}%", inline=False)
-            embed.add_field(name="総合相性", value=f"{love_score[0]}%", inline=False)
+            #embed.add_field(name="ユーザー1", value=name1, inline=True)
+            #embed.add_field(name="ユーザー2", value=name2, inline=True)
+            embed.add_field(name=name1+"→"+name2, value=f"好感度：{love_score[1]}% 性欲：{love_score[3]}", inline=False)
+            embed.add_field(name=name2+"→"+name1, value=f"好感度：{love_score[2]}% 性欲：{love_score[4]}", inline=False)
+            embed.add_field(name="総合相性（好感度平均）", value=f"{love_score[0]}%", inline=False)
             embed.add_field(name="メッセージ", value=message, inline=False)
             await interaction.response.send_message(embed=embed)
         
@@ -32,13 +32,15 @@ class LoveCalculator(commands.Cog):
         else:
             combined_names = name2 + name1
         random.seed(combined_names)
-        user1_to_user2 = random.randint(0, 100)
-        user2_to_user1 = random.randint(0, 100)
-        love_score = (user1_to_user2 + user2_to_user1) // 2
+        user1_to_user2_friend = random.randint(0, 100)
+        user2_to_user1_friend = random.randint(0, 100)
+        user1_to_user2_sex = random.randint(0, 100)
+        user2_to_user1_sex = random.randint(0, 100)
+        love_score = (user1_to_user2_friend + user2_to_user1_friend) // 2
         if name1 > name2:
-            return [love_score, user1_to_user2, user2_to_user1]
+            return [love_score, user1_to_user2_friend, user2_to_user1_friend, user1_to_user2_sex, user2_to_user1_sex]
         else:
-            return [love_score, user2_to_user1, user1_to_user2]
+            return [love_score, user2_to_user1_friend, user1_to_user2_friend, user2_to_user1_sex, user1_to_user2_sex]
 
     def get_love_message(self, score, user1_to_user2, user2_to_user1):
         if abs(user1_to_user2 - user2_to_user1) > 30:
