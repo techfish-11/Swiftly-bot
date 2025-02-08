@@ -27,7 +27,10 @@ class LoveCalculator(commands.Cog):
             await interaction.response.send_message(embed=embed)
         
     def K7LoveCalc(self, name1: str, name2: str):
-        combined_names = name1 + name2
+        if name1 > name2:
+            combined_names = name1 + name2
+        else:
+            combined_names = name2 + name1
         random.seed(combined_names)
         user1_to_user2 = random.randint(0, 100)
         user2_to_user1 = random.randint(0, 100)
