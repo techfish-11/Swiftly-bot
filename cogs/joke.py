@@ -10,9 +10,7 @@ class LoveCalculator(commands.Cog):
     async def love_calculator(self, interaction: discord.Interaction, user1: discord.User, user2: discord.User):
         name1 = user1.name
         name2 = user2.name
-        id1 = user1.id
-        id2 = user2.id
-        love_score = self.K7LoveCalc(id1, id2)
+        love_score = self.K7LoveCalc(name1, name2)
         message = self.get_love_message(love_score[0], love_score[1], love_score[2])
         
         embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
@@ -25,8 +23,9 @@ class LoveCalculator(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
         
-    def K7LoveCalc(self, id0: int, id1: int):
-        random.seed(id0 + id1)
+    def K7LoveCalc(self, name1: str, name2: str):
+        combined_names = name1 + name2
+        random.seed(combined_names)
         user1_to_user2 = random.randint(0, 100)
         user2_to_user1 = random.randint(0, 100)
         love_score = (user1_to_user2 + user2_to_user1) // 2
