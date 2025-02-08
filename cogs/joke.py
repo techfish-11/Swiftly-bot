@@ -34,7 +34,7 @@ class LoveCalculator(commands.Cog):
         random.seed(id0+id1)
         rands = []
         for i in range(3):
-            rands[i] = random.randint(0,100)
+            rands.append(random.randint(0,100))
         if id0 > id1:
             return [rands[0], rands[1], rands[2]]
         else:
