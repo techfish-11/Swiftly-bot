@@ -25,14 +25,18 @@ class LoveCalculator(commands.Cog):
             embed.add_field(name="総合相性（好感度平均）", value=f"{love_score[0]}%", inline=False)
             embed.add_field(name="メッセージ", value=message, inline=False)
             await interaction.response.send_message(embed=embed)
-        
+
     def K7LoveCalc(self, name1: str, name2: str):
-        current_date = time.strftime("%Y-%m-%d")
+        # Use only day of the current date (1～31) as a slight influence
+        current_day = int(time.strftime("%d"))
         if name1 > name2:
-            combined_names = name1 + name2 + current_date
+            base = name1 + name2
         else:
-            combined_names = name2 + name1 + current_date
-        random.seed(combined_names)
+            base = name2 + name1
+        # The date adds only a small offset to the seed
+        seed_value = hash(base) + current_day
+        random.seed(seed_value)
+
         user1_to_user2_friend = random.randint(0, 100)
         user2_to_user1_friend = random.randint(0, 100)
         user1_to_user2_sex = random.randint(0, user1_to_user2_friend)
@@ -45,9 +49,9 @@ class LoveCalculator(commands.Cog):
 
     def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
         if user1_to_user2 - user2_to_user1 > 70:
-            return user1_name+"よ、諦めろ。"
+            return user1_name + "よ、諦めろ。"
         elif user2_to_user1 - user1_to_user2 > 70:
-            return user2_name+"よ、諦めろ。"
+            return user2_name + "よ、諦めろ。"
         elif abs(user1_to_user2 - user2_to_user1) > 50:
             return "視界に入れてない可能性があります。"
         elif abs(user1_to_user2 - user2_to_user1) > 30:
