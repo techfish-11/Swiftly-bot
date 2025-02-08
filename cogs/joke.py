@@ -12,7 +12,7 @@ class LoveCalculator(commands.Cog):
         name2 = user2.name
         id1 = user1.id
         id2 = user2.id
-        love_score = self.calculate_love_score(id1, id2)
+        love_score = self.K7LoveCalc(id1, id2)
         message = self.get_love_message(love_score)
         
         embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
