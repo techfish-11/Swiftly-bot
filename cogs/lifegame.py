@@ -18,9 +18,9 @@ class LifeGame(commands.Cog):
             board_size = 50
             board = np.random.choice([0, 1], size=(board_size, board_size))
 
-            # Create a video writer using AV1 codec
-            video_filename = 'lifegame_simulation.mp4'
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            # Create a video writer using VP9 codec
+            video_filename = 'lifegame_simulation.webm'
+            fourcc = cv2.VideoWriter_fourcc(*'VP90')
             out = cv2.VideoWriter(video_filename, fourcc, 30.0, (board_size * 10, board_size * 10))
 
             for _ in range(100):  # Run for 100 generations
