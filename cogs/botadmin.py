@@ -11,6 +11,12 @@ class BotAdmin(commands.Cog):
 
     @discord.app_commands.command(name="botadmin", description="Bot管理コマンド")
     async def botadmin_command(self, interaction: discord.Interaction, option: str):
+        if interaction.user.id != 1241397634095120438:
+            embed = discord.Embed(
+                title="エラー", description="このコマンドを使用する権限がありません。", color=discord.Color.red())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
         if option == "servers":
             embed = discord.Embed(title="参加中のサーバー", color=discord.Color.blue())
             for guild in self.bot.guilds:
