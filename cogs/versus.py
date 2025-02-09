@@ -44,7 +44,7 @@ class Versus(commands.Cog):
                 hp2 = stats2[3]
                 embed = discord.Embed(title="⚔ Versus ⚔", color=discord.Color.dark_red())
                 turn = random.randint(0,1)
-                message = await interaction.response.send_message(embed=embed, wait=True)
+                message = await interaction.response.send_message(embed=embed)
                 for i in range(20):
                     crit = False
                     crit_chance = 0.1
