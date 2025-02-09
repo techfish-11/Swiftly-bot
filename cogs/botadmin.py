@@ -37,6 +37,12 @@ class BotAdmin(commands.Cog):
             embed = discord.Embed(
                 title="デバッグ情報", description=debug_info, color=discord.Color.green())
             await interaction.response.send_message(embed=embed, ephemeral=True)
+        elif option.startswith("say:"):
+            message = option[4:]
+            await interaction.channel.send(message)
+            embed = discord.Embed(
+                title="Sayコマンド", description="sayを出力しました", color=discord.Color.green())
+            await interaction.followup.send(embed=embed, ephemeral=True)
         else:
             embed = discord.Embed(
                 title="エラー", description="無効なオプションです。", color=discord.Color.red())
