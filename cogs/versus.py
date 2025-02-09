@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import random
 import math
-import asyncio
 import time
 
 prog_langs = ["C++", "Rust", "Python", "JavaScript", "Go", "Java", "TypeScript", "Swift", "Kotlin", "PHP", "Ruby"]
@@ -34,97 +33,74 @@ class Versus(commands.Cog):
             embed = discord.Embed(title="⚔ Versus ⚔", color=discord.Color.dark_red())
             embed.add_field(name="メッセージ", value="1人目と2人目で同じユーザーが選択されています。", inline=False)
             await interaction.response.send_message(embed=embed)
-            return
-
-        name1 = user1.name
-        name2 = user2.name
-        stats1 = self.K7StatsCalc(name1)
-        stats2 = self.K7StatsCalc(name2)
-        hp1 = stats1[3]
-        hp2 = stats2[3]
-        embed = discord.Embed(title="⚔ Versus ⚔", color=discord.Color.dark_red())
-        embed.add_field(name="開始", value=f"{name1} vs {name2}\nBattle Start!", inline=False)
-        
-        # 初回メッセージを送信
-        await interaction.response.send_message(embed=embed)
-        
-        # ターン開始：先攻はランダムで決定
-        turn = random.randint(0, 1)
-        for i in range(20):
-            crit = False
-            crit_chance = 0.1
-            if turn:
-                turn_atk = stats1[1]
-                turn_def = stats2[2]
-                if nice_lang[stats1[0]] == stats2[0]:
-                    crit_chance = 0.2
-                    turn_atk *= 1.2
-                elif bad_lang[stats1[0]] == stats2[0]:
-                    crit_chance = 0.05
-                    turn_atk *= 0.87
-                if random.random() <= crit_chance:
-                    turn_atk *= 2
-                    turn_def = 0
-                    crit = True
-                damage = math.floor(max(0, turn_atk * (1 - (turn_def / 100))))
-                hp2 -= damage
-                if crit:
-                    embed.add_field(name=f"ターン {i+1}: {name1}の攻撃", 
-                                    value=f"クリティカルヒット！ {name2}に {damage} のダメージ。残りHP：{hp2}", 
-                                    inline=False)
-                else:
-                    embed.add_field(name=f"ターン {i+1}: {name1}の攻撃", 
-                                    value=f"{name2}に {damage} のダメージ。残りHP：{hp2}",
-                                    inline=False)
-                if hp2 <= 0:
-                    embed.add_field(name="結果", value=f"{name1}の勝利！　{name1}は {hp1} の体力を残して勝利しました！", inline=False)
-                    await interaction.edit_original_message(embed=embed)
-                    break
-            else:
-                turn_atk = stats2[1]
-                turn_def = stats1[2]
-                if nice_lang[stats2[0]] == stats1[0]:
-                    crit_chance = 0.2
-                    turn_atk *= 1.2
-                elif bad_lang[stats2[0]] == stats1[0]:
-                    crit_chance = 0.05
-                    turn_atk *= 0.87
-                if random.random() <= crit_chance:
-                    turn_atk *= 2
-                    turn_def = 0
-                    crit = True
-                damage = math.floor(max(0, turn_atk * (1 - (turn_def / 100))))
-                hp1 -= damage
-                if crit:
-                    embed.add_field(name=f"ターン {i+1}: {name2}の攻撃", 
-                                    value=f"クリティカルヒット！ {name1}に {damage} のダメージ。残りHP：{hp1}", 
-                                    inline=False)
-                else:
-                    embed.add_field(name=f"ターン {i+1}: {name2}の攻撃", 
-                                    value=f"{name1}に {damage} のダメージ。残りHP：{hp1}", 
-                                    inline=False)
-                if hp1 <= 0:
-                    embed.add_field(name="結果", value=f"{name2}の勝利！　{name2}は {hp2} の体力を残して勝利しました！", inline=False)
-                    await interaction.edit_original_message(embed=embed)
-                    break
-
-            turn = not turn
-            # 各ターンごとにメッセージを更新
-            await interaction.edit_original_message(embed=embed)
-            await asyncio.sleep(0.7)
         else:
-            # 20ターン経過しても勝敗が決まらなければ引き分け
-            embed.add_field(name="引き分け", 
-                            value=f"20ターン以内に決着がつかなかった。\n{name1}の体力：{hp1}\n{name2}の体力：{hp2}", 
-                            inline=False)
-            await interaction.edit_original_message(embed=embed)
+            name1 = user1.name
+            name2 = user2.name
+            stats1 = self.K7StatsCalc(name1)
+            stats2 = self.K7StatsCalc(name2)
+            hp1 = stats1[3]
+            hp2 = stats2[3]
+            embed = discord.Embed(title="⚔ Versus ⚔", color=discord.Color.dark_red())
+            turn = random.randint(0,1)
+            for i in range(20):
+                crit = False
+                crit_chance = 0.1
+                if turn:
+                    turn_atk = stats1[1]
+                    turn_def = stats2[2]
+                    if nice_lang[stats1[0]] == stats2[0]:
+                        crit_chance = 0.2
+                        turn_atk *= 1.2
+                    elif bad_lang[stats1[0]] == stats2[0]:
+                        crit_chance = 0.05
+                        turn_atk *= 0.87
+                    if random.random() <= crit_chance:
+                        turn_atk *= 2
+                        turn_def = 0
+                        crit = True
+                    damage = math.floor(max(0, turn_atk*(1-(turn_def/100))))
+                    hp2 -= damage
+                    if crit:
+                        embed.add_field(name=name1+"のターン", value="クリティカルヒット！"+name2+"に"+str(damage)+"のダメージ！残りHP："+str(hp2), inline=False)
+                    else:
+                        embed.add_field(name=name1+"のターン", value=name2+"に"+str(damage)+"のダメージ！残りHP："+str(hp2), inline=False)
+                    if hp2 <= 0:
+                        embed.add_field(name=name1+"の勝利！", value=name1+"は"+str(hp1)+"の体力を残して勝利した！", inline=False)
+                        break
+                else:
+                    turn_atk = stats2[1]
+                    crit_chance = 0.1
+                    turn_def = stats1[2]
+                    if nice_lang[stats2[0]] == stats1[0]:
+                        crit_chance = 0.2
+                        turn_atk *= 1.2
+                    elif bad_lang[stats2[0]] == stats1[0]:
+                        crit_chance = 0.05
+                        turn_atk *= 0.87
+                    if random.random() <= crit_chance:
+                        turn_atk *= 2
+                        turn_def = 0
+                        crit = True
+                    damage = math.floor(max(0, turn_atk*(1-(turn_def/100))))
+                    hp1 -= damage
+                    if crit:
+                        embed.add_field(name=name2+"のターン", value="クリティカルヒット！"+name1+"に"+str(damage)+"のダメージ！残りHP："+str(hp1), inline=False)
+                    else:
+                        embed.add_field(name=name2+"のターン", value=name1+"に"+str(damage)+"のダメージ！残りHP："+str(hp1), inline=False)
+                    if hp1 <= 0:
+                        embed.add_field(name=name2+"の勝利！", value=name2+"は"+str(hp2)+"の体力を残して勝利した！", inline=False)
+                        break
+                turn = not turn
+            if hp1 > 0 and hp2 > 0:
+                embed.add_field(name="引き分け", value="10ターン以内に戦いが終わらなかった。\n"+name1+"の体力："+str(hp1)+"/n"+name2+"の体力："+str(hp2), inline=False)
+            await interaction.response.send_message(embed=embed)
 
     def K7StatsCalc(self, name: str):
         random.seed(name)
         weapon = random.choice(prog_langs)
         attack = random.randint(0, 100)
         defence = random.randint(0, 100)
-        hp = random.randint(attack + defence, 300)
+        hp = random.randint(attack+defence, 300)
         return [weapon, attack, defence, hp]
 
 async def setup(bot):
