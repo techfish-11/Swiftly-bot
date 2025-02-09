@@ -15,6 +15,7 @@ class Minecraft(commands.Cog):
     @app_commands.command(name='minecraft', description='Get the status of a Minecraft server')
     async def minecraft(self, interaction: discord.Interaction, address: str):
         url = f'https://api.mcsrvstat.us/3/{address}'
+        icon_url = f'https://api.mcsrvstat.us/icon/{address}'
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
@@ -27,6 +28,7 @@ class Minecraft(commands.Cog):
 
                     if data['online']:
                         embed = discord.Embed(title=f"Server Status for {address}", color=discord.Color.green())
+                        embed.set_thumbnail(url=icon_url)
                         embed.add_field(name="IP", value=data.get('ip', 'N/A'), inline=False)
                         embed.add_field(name="Port", value=data.get('port', 'N/A'), inline=False)
                         embed.add_field(name="Version", value=data.get('version', 'N/A'), inline=False)
@@ -43,6 +45,7 @@ class Minecraft(commands.Cog):
                             embed.add_field(name="Mods", value=mods, inline=False)
                     else:
                         embed = discord.Embed(title=f"Server Status for {address}", color=discord.Color.red())
+                        embed.set_thumbnail(url=icon_url)
                         embed.add_field(name="Status", value="Offline", inline=False)
 
                     await interaction.response.send_message(embed=embed)
