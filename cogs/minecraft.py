@@ -14,6 +14,7 @@ class Minecraft(commands.Cog):
 
     @app_commands.command(name='minecraft', description='Get the status of a Minecraft server')
     async def minecraft(self, interaction: discord.Interaction, address: str):
+        await interaction.response.defer(thinking=True)
         url = f'https://api.mcsrvstat.us/3/{address}'
         icon_url = f'https://api.mcsrvstat.us/icon/{address}'
         try:
@@ -48,13 +49,13 @@ class Minecraft(commands.Cog):
                         embed.set_thumbnail(url=icon_url)
                         embed.add_field(name="Status", value="Offline", inline=False)
 
-                    await interaction.response.send_message(embed=embed)
+                    await interaction.followup.send(embed=embed)
         except aiohttp.ClientError as e:
             logger.error(f"ClientError: {e}")
-            await interaction.response.send_message(f"Failed to retrieve server status: {e}", ephemeral=True)
+            await interaction.followup.send(f"Failed to retrieve server status: {e}", ephemeral=True)
         except Exception as e:
             logger.error(f"Unexpected error: {e}", exc_info=True)
-            await interaction.response.send_message(f"An unexpected error occurred: {e}", ephemeral=True)
+            await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Minecraft(bot))
