@@ -45,10 +45,10 @@ class Versus(commands.Cog):
         embed = discord.Embed(title="⚔ Versus ⚔", color=discord.Color.dark_red())
         embed.add_field(name="開始", value=f"{name1} vs {name2}\nBattle Start!", inline=False)
         
-        # Send the initial message
+        # 初回メッセージを送信
         await interaction.response.send_message(embed=embed)
         
-        # Use turn to determine who goes first randomly
+        # ターン開始：先攻はランダムで決定
         turn = random.randint(0, 1)
         for i in range(20):
             crit = False
@@ -66,14 +66,18 @@ class Versus(commands.Cog):
                     turn_atk *= 2
                     turn_def = 0
                     crit = True
-                damage = math.floor(max(0, turn_atk*(1 - (turn_def/100))))
+                damage = math.floor(max(0, turn_atk * (1 - (turn_def / 100))))
                 hp2 -= damage
                 if crit:
-                    embed.add_field(name=f"{name1}のターン", value=f"クリティカルヒット！ {name2}に {damage} のダメージ！ 残りHP：{hp2}", inline=False)
+                    embed.add_field(name=f"ターン {i+1}: {name1}の攻撃", 
+                                    value=f"クリティカルヒット！ {name2}に {damage} のダメージ。残りHP：{hp2}", 
+                                    inline=False)
                 else:
-                    embed.add_field(name=f"{name1}のターン", value=f"{name2}に {damage} のダメージ！ 残りHP：{hp2}", inline=False)
+                    embed.add_field(name=f"ターン {i+1}: {name1}の攻撃", 
+                                    value=f"{name2}に {damage} のダメージ。残りHP：{hp2}",
+                                    inline=False)
                 if hp2 <= 0:
-                    embed.add_field(name=f"{name1}の勝利！", value=f"{name1}は {hp1} の体力を残して勝利した！", inline=False)
+                    embed.add_field(name="結果", value=f"{name1}の勝利！　{name1}は {hp1} の体力を残して勝利しました！", inline=False)
                     await interaction.edit_original_message(embed=embed)
                     break
             else:
@@ -89,24 +93,29 @@ class Versus(commands.Cog):
                     turn_atk *= 2
                     turn_def = 0
                     crit = True
-                damage = math.floor(max(0, turn_atk*(1 - (turn_def/100))))
+                damage = math.floor(max(0, turn_atk * (1 - (turn_def / 100))))
                 hp1 -= damage
                 if crit:
-                    embed.add_field(name=f"{name2}のターン", value=f"クリティカルヒット！ {name1}に {damage} のダメージ！ 残りHP：{hp1}", inline=False)
+                    embed.add_field(name=f"ターン {i+1}: {name2}の攻撃", 
+                                    value=f"クリティカルヒット！ {name1}に {damage} のダメージ。残りHP：{hp1}", 
+                                    inline=False)
                 else:
-                    embed.add_field(name=f"{name2}のターン", value=f"{name1}に {damage} のダメージ！ 残りHP：{hp1}", inline=False)
+                    embed.add_field(name=f"ターン {i+1}: {name2}の攻撃", 
+                                    value=f"{name1}に {damage} のダメージ。残りHP：{hp1}", 
+                                    inline=False)
                 if hp1 <= 0:
-                    embed.add_field(name=f"{name2}の勝利！", value=f"{name2}は {hp2} の体力を残して勝利した！", inline=False)
+                    embed.add_field(name="結果", value=f"{name2}の勝利！　{name2}は {hp2} の体力を残して勝利しました！", inline=False)
                     await interaction.edit_original_message(embed=embed)
                     break
+
             turn = not turn
-            # Edit the original message to add the latest turn result
+            # 各ターンごとにメッセージを更新
             await interaction.edit_original_message(embed=embed)
             await asyncio.sleep(0.7)
         else:
-            # If loop completes without a win, it's a draw.
+            # 20ターン経過しても勝敗が決まらなければ引き分け
             embed.add_field(name="引き分け", 
-                            value=f"10ターン以内に戦いが終わらなかった。\n{name1}の体力：{hp1}\n{name2}の体力：{hp2}", 
+                            value=f"20ターン以内に決着がつかなかった。\n{name1}の体力：{hp1}\n{name2}の体力：{hp2}", 
                             inline=False)
             await interaction.edit_original_message(embed=embed)
 
