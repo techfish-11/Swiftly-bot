@@ -32,8 +32,10 @@ class WikipediaCog(commands.Cog):
         """ページ情報を非同期で取得"""
         loop = asyncio.get_event_loop()
         try:
-            page = await loop.run_in_executor(None, wikipedia.page, title)
-            summary = await loop.run_in_executor(None, wikipedia.summary, title, 3)
+            page, summary = await asyncio.gather(
+                loop.run_in_executor(None, wikipedia.page, title),
+                loop.run_in_executor(None, wikipedia.summary, title, 3)
+            )
             return page.title, summary, page.url
         except Exception as e:
             raise e
