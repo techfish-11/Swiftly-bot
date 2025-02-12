@@ -11,7 +11,8 @@ class iconcheck(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild.id == 1255359848644608035:
-            if (message.author.avatar is None and
+            user = await self.bot.fetch_user(message.author.id)
+            if (user.avatar is None and
                 message.author.created_at.date() == datetime.now(JST).date()):
                 await message.delete()
                 await message.channel.send(f"{message.author.mention}、デフォルトのアバターおよび今日作成されたアカウントではメッセージを送信できません。")
