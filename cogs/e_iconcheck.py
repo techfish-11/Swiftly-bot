@@ -14,5 +14,5 @@ class iconcheck(commands.Cog):
                 await message.delete()
                 await message.channel.send(f"{message.author.mention}、デフォルトのアバターおよび今日作成されたアカウントではメッセージを送信できません。")
 
-def setup(bot):
-    bot.add_cog(iconcheck(bot))
+async def setup(bot):
+    await bot.add_cog(iconcheck(bot))
