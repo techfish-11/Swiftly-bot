@@ -23,7 +23,7 @@ class IconCheck(commands.Cog):
             created_at_utc = user.created_at.replace(tzinfo=timezone.utc)
             is_new_account = created_at_utc.date() == datetime.now(timezone.utc).date()
 
-            if is_default_avatar or is_new_account:
+            if is_default_avatar and is_new_account:
                 await message.delete()
                 await message.channel.send(
                     f"{user.mention}、デフォルトのアバターまたは本日作成されたアカウントではメッセージを送信できません。"
