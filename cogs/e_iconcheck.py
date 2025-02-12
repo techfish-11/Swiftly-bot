@@ -20,8 +20,8 @@ class IconCheck(commands.Cog):
             is_default_avatar = user.avatar is None
 
             # アカウント作成日が今日かどうかのチェック
-            created_at_jst = user.created_at.astimezone(JST)
-            is_new_account = created_at_jst.date() == datetime.now(JST).date()
+            created_at_utc = user.created_at.replace(tzinfo=timezone.utc)
+            is_new_account = created_at_utc.date() == datetime.now(timezone.utc).date()
 
             if is_default_avatar or is_new_account:
                 await message.delete()
