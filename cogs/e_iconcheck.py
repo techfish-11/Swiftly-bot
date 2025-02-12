@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+JST = timezone(timedelta(hours=9))
 
 class iconcheck(commands.Cog):
     def __init__(self, bot):
@@ -10,7 +12,7 @@ class iconcheck(commands.Cog):
     async def on_message(self, message):
         if message.guild.id == 1255359848644608035:
             if (message.author.default_avatar_url == message.author.avatar_url and
-                message.author.created_at.date() == datetime.now(timezone.utc).date()):
+                message.author.created_at.date() == datetime.now(JST).date()):
                 await message.delete()
                 await message.channel.send(f"{message.author.mention}、デフォルトのアバターおよび今日作成されたアカウントではメッセージを送信できません。")
 
