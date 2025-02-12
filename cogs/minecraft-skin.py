@@ -7,7 +7,7 @@ class MinecraftSkin(commands.Cog):
 
     @discord.app_commands.command(name="skin", description="Minecraftのスキンを取得します。Java版のみ。")
     async def skin(self, interaction: discord.Interaction, username: str) -> None:
-        skin_url = f"https://mineskin.eu/headhelm/{username}/100.png"
+        skin_url = f"https://mineskin.eu/armor/body/{username}/100.png"
 
         embed = discord.Embed(
             title=f"{username}'s Minecraft Skin",
