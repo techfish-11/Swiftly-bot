@@ -8,6 +8,7 @@ class Whois(commands.Cog):
 
     @discord.app_commands.command(name="whois", description="ドメインのwhois情報を返します")
     async def whois(self, interaction: discord.Interaction, domain: str) -> None:
+        await interaction.response.defer(thinking=True)
         try:
             domain_info = whois.whois(domain)
             embed = discord.Embed(
@@ -27,9 +28,9 @@ class Whois(commands.Cog):
                 if value:
                     embed.add_field(name=key, value=str(value), inline=False)
 
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
         except Exception as e:
-            await interaction.response.send_message(f"エラーが発生しました: {str(e)}", ephemeral=True)
+            await interaction.followup.send(f"エラーが発生しました: {str(e)}", ephemeral=True)
 
 
 async def setup(bot):
