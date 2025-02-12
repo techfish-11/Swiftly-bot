@@ -80,7 +80,7 @@ class Captcha(commands.Cog):
                     
                     embed = discord.Embed(
                         title="CAPTCHA チャレンジ", 
-                        description=f"難易度: {difficulty}\n\n下のボタンを押して回答してください。\n制限時間: 30秒\n\nAPIエンドポイント: [https://captcha.evex.land/api/captcha](https://captcha.evex.land/api/captcha)", 
+                        description=f"難易度: {difficulty}\n\n下のボタンを押して回答してください。\n制限時間: 30秒\n\nAPIエンドポイント: https://captcha.evex.land/api/captcha", 
                         color=discord.Color.blue()
                     )
                     embed.set_image(url="attachment://captcha.png")
