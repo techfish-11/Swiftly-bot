@@ -38,6 +38,7 @@ class ImageGen(commands.Cog):
                             description=f"Information for IP: {ip_addr}",
                             color=discord.Color.green()
                         )
+                        embed.set_footer(text="API Powered by Evex")
                         for key, value in ip_data.items():
                             embed.add_field(name=key, value=value, inline=False)
                         await interaction.followup.send(embed=embed)
