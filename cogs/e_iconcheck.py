@@ -25,9 +25,10 @@ class IconCheck(commands.Cog):
 
             if is_default_avatar and is_new_account:
                 await message.delete()
-                await message.channel.send(
+                warning_message = await message.channel.send(
                     f"{user.mention}、デフォルトのアバターまたは本日作成されたアカウントではメッセージを送信できません。"
                 )
+                await warning_message.delete(delay=5)
 
 async def setup(bot):
     await bot.add_cog(IconCheck(bot))
