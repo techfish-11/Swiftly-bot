@@ -26,24 +26,5 @@ class ImageGen(commands.Cog):
                 else:
                     await interaction.followup.send("Failed to generate image. Please try again later.", ephemeral=True)
 
-        @discord.app_commands.command(name="ip", description="Fetches IP information for the given IP address")
-        async def ip_info(self, interaction: discord.Interaction, ip_addr: str) -> None:
-            await interaction.response.defer(thinking=True)
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"https://ip.evex.land/{ip_addr}") as response:
-                    if response.status == 200:
-                        ip_data = await response.json()
-                        embed = discord.Embed(
-                            title="IP Information",
-                            description=f"Information for IP: {ip_addr}",
-                            color=discord.Color.green()
-                        )
-                        embed.set_footer(text="API Powered by Evex")
-                        for key, value in ip_data.items():
-                            embed.add_field(name=key, value=value, inline=False)
-                        await interaction.followup.send(embed=embed)
-                    else:
-                        await interaction.followup.send("Failed to fetch IP information. Please try again later.", ephemeral=True)
-
 async def setup(bot):
     await bot.add_cog(ImageGen(bot))
