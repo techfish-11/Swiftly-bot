@@ -19,6 +19,7 @@ class ImageGen(commands.Cog):
                         color=discord.Color.blue()
                     )
                     embed.set_image(url=image_url)
+                    embed.set_footer(text="API Powered by Evex")
                     await interaction.followup.send(embed=embed)
                 else:
                     await interaction.followup.send("Failed to generate image. Please try again later.", ephemeral=True)
