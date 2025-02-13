@@ -15,38 +15,31 @@ class IP(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"https://ip.evex.land/{ip_addr}") as response:
                     if response.status == 200:
-                        try:
-                            data = await response.json()
-                            embed = discord.Embed(
-                                title="IP Information",
-                                description=f"IP: {ip_addr}",
-                                color=discord.Color.blue()
-                            )
-                            fields = [
-                                ("Continent", data.get("continent")),
-                                ("Country", data.get("country")),
-                                ("Region", data.get("regionName")),
-                                ("City", data.get("city")),
-                                ("ZIP Code", data.get("zip")),
-                                ("Latitude", data.get("lat")),
-                                ("Longitude", data.get("lon")),
-                                ("Timezone", data.get("timezone")),
-                                ("ISP", data.get("isp")),
-                                ("Organization", data.get("org")),
-                                ("AS", data.get("as")),
-                                ("AS Name", data.get("asname")),
-                                ("Mobile", data.get("mobile")),
-                                ("Proxy", data.get("proxy")),
-                                ("Hosting", data.get("hosting")),
-                            ]
-                            for name, value in fields:
-                                if value is not None:
-                                    embed.add_field(name=name, value=value, inline=False)
-                            embed.set_footer(text="API Powered by Evex")
-                            await interaction.followup.send(embed=embed)
-                        except aiohttp.ContentTypeError:
-                            text_response = await response.text()
-                            await interaction.followup.send(f"JSONの解析に失敗しました。応答: {text_response[:1000]}", ephemeral=True)
+                        data = await response.json()
+                        embed = discord.Embed(
+                            title="IP Information",
+                            description=f"IP: {ip_addr}",
+                            color=discord.Color.blue()
+                        )
+                        fields = [
+                            ("Continent", f"{data.get('continent')} ({data.get('continentCode')})"),
+                            ("Country", f"{data.get('country')} ({data.get('countryCode')})"),
+                            ("Region", f"{data.get('regionName')} ({data.get('region')})"),
+                            ("City", data.get("city")),
+                            ("ZIP Code", data.get("zip")),
+                            ("Coordinates", f"Lat: {data.get('lat')}, Lon: {data.get('lon')}"),
+                            ("Timezone", f"{data.get('timezone')} (Offset: {data.get('offset')})"),
+                            ("Currency", data.get("currency")),
+                            ("ISP", data.get("isp")),
+                            ("Organization", data.get("org")),
+                            ("AS", f"{data.get('as')} ({data.get('asname')})"),
+                            ("Network Type", f"Mobile: {data.get('mobile')}\nProxy: {data.get('proxy')}\nHosting: {data.get('hosting')}")
+                        ]
+                        for name, value in fields:
+                            if value:
+                                embed.add_field(name=name, value=value, inline=True)
+                        embed.set_footer(text="API Powered by Evex")
+                        await interaction.followup.send(embed=embed)
                     else:
                         await interaction.followup.send(f"APIエラー: ステータスコード {response.status}", ephemeral=True)
         except aiohttp.ClientError as e:
