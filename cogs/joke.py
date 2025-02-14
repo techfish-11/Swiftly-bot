@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 import random
-import math
 import time
+
 
 prog_langs = ["C++", "Rust", "Python", "JavaScript", "Go", "Java", "TypeScript", "Swift", "Kotlin", "PHP", "Ruby"]
 nice_lang = {"C++": "Rust", "Rust": "Python", "Python": "JavaScript", "JavaScript": "Go", "Go": "Java", "Java": "TypeScript", "TypeScript": "Swift", "Swift": "Kotlin", "Kotlin": "PHP", "PHP": "Ruby", "Ruby": "C++"}
@@ -127,7 +127,6 @@ class LoveCalculator(commands.Cog):
             if hp1 > 0 and hp2 > 0:
                 embed.add_field(name="引き分け", value="10ターン以内に戦いが終わらなかった。\n"+name1+"の体力："+str(hp1)+"/n"+name2+"の体力："+str(hp2), inline=False)
             await interaction.response.send_message(embed=embed)
-        
 
     def K7LoveCalc(self, name1: str, name2: str):
         # Use only day of the current date (1～31) as a slight influence
@@ -149,14 +148,6 @@ class LoveCalculator(commands.Cog):
             return [love_score, user1_to_user2_friend, user2_to_user1_friend, user1_to_user2_sex, user2_to_user1_sex]
         else:
             return [love_score, user2_to_user1_friend, user1_to_user2_friend, user2_to_user1_sex, user1_to_user2_sex]
-        
-    def K7StatsCalc(self, name: str):
-        random.seed(name)
-        weapon = random.choice(prog_langs)
-        attack = random.randint(0, 100)
-        defence = random.randint(0, 100)
-        hp = random.randint(attack+defence, 300)
-        return [weapon, attack, defence, hp]
 
     def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
         if user1_to_user2 - user2_to_user1 > 70:

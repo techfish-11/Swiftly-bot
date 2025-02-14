@@ -44,7 +44,6 @@ class Status(commands.Cog):
         except asyncio.TimeoutError:
             return "タイムアウト"
 
-
 async def setup(bot: commands.Bot):
     """Cogを非同期で追加"""
     await bot.add_cog(Status(bot))
