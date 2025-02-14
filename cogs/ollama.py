@@ -21,12 +21,19 @@ class OllamaCog(commands.Cog):
             }]
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(API_SERVER_URL, headers=headers, json=json) as response:
-                response.raise_for_status()
-                data = await response.json()
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(API_SERVER_URL, headers=headers, json=json) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+        except aiohttp.ClientError as e:
+            await interaction.followup.send(f"HTTP error occurred: {e}")
+            return
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred: {e}")
+            return
 
-        embed = discord.Embed(title="LLM Response", description=data['text'], color=discord.Color.blue())
+        embed = discord.Embed(title="LLM Response", description=data.get('text', 'No response text'), color=discord.Color.blue())
         await interaction.followup.send(embed=embed)
 
 async def setup(bot):
