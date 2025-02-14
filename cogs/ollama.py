@@ -33,7 +33,8 @@ class OllamaCog(commands.Cog):
             await interaction.followup.send(f"An error occurred: {e}")
             return
 
-        embed = discord.Embed(title="LLM Response", description=data.get('text', 'No response text'), color=discord.Color.blue())
+        message_content = data.get('message', {}).get('content', 'No response text')
+        embed = discord.Embed(title="LLM Response", description=message_content, color=discord.Color.blue())
         await interaction.followup.send(embed=embed)
 
 async def setup(bot):
