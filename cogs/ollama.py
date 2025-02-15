@@ -16,8 +16,8 @@ class OllamaCog(commands.Cog):
             "model": "hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF",
             "stream": False,
             "messages": [{
-                {"role": "system", "content": "あなたはSakanaAIという会社から生まれたTinySwallow-1.5B-Instructというモデルです。"},
-                {"role": "user", "content": prompt},
+                "role": "user",
+                "content": prompt,
             }]
         }
 
