@@ -15,10 +15,16 @@ class OllamaCog(commands.Cog):
         json = {
             "model": "hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF",
             "stream": False,
-            "messages": [{
-                "role": "user",
-                "content": prompt,
-            }]
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "あなたはSakanaAIという会社から生まれたTinySwallow-1.5B-Instructというモデルです。"
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ]
         }
 
         try:
