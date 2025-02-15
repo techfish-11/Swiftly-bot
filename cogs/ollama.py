@@ -18,7 +18,7 @@ class OllamaCog(commands.Cog):
             "messages": [
                 {
                     "role": "system",
-                    "content": "あなたはSakanaAIという会社から生まれたTinySwallow-1.5B-Instructというモデルです。"
+                    "content": "あなたはSakanaAI株式会社が開発したTinySwallowです。優秀なアシスタントです。"
                 },
                 {
                     "role": "user",
