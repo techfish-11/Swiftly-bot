@@ -11,7 +11,7 @@ API_URL = "https://py-sandbox.evex.land/"
 SUPPORT_FOOTER = "API Powered by EvexDevelopers | Support Server: https://discord.gg/evex"
 
 
-class Sandbox(commands.Cog):
+class Sandboxpy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = None
@@ -109,4 +109,4 @@ class Sandbox(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(Sandbox(bot))
+    await bot.add_cog(Sandboxpy(bot))
