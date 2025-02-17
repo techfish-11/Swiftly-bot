@@ -92,8 +92,8 @@ class SandboxPy(commands.Cog):
         if message.author.bot:
             return
 
-        if message.content.startswith("?sandboxpy"):
-            code = message.content[len("?sandboxpy "):].strip()
+        if message.content.startswith("?pysandbox"):
+            code = message.content[len("?pysandbox "):].strip()
             if not code:
                 await message.channel.send("実行するコードを入力してください。")
                 return
