@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import aiohttp
 
-API_SERVER_URL = "http://192.168.1.7:11434/api/chat"
+API_SERVER_URL = "http://192.168.1.9:11434/api/chat"
 
 class OllamaCog(commands.Cog):
     def __init__(self, bot):
