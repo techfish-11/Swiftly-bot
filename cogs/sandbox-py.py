@@ -75,7 +75,7 @@ class Sandbox(commands.Cog):
             return None, f"予期せぬエラー: {str(e)}", 0.0
 
     @discord.app_commands.command(
-        name="sandbox",
+        name="sandbox-py",
         description="Python コードをサンドボックスで実行し、結果を返します。"
     )
     async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
