@@ -56,7 +56,7 @@ class Sandboxpy(commands.Cog):
         embed.set_footer(text=SUPPORT_FOOTER)
         return embed
 
-    async def execute_code(self, code: str) -> tuple[Optional[dict], Optional[str], float]:
+    async def execute_codepy(self, code: str) -> tuple[Optional[dict], Optional[str], float]:
         headers = {"Content-Type": "application/json"}
         payload = {"code": code}
 
@@ -83,7 +83,7 @@ class Sandboxpy(commands.Cog):
     )
     async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
-        result, error, elapsed_time = await self.execute_code(code)
+        result, error, elapsed_time = await self.execute_codepy(code)
         embed = await self.create_result_embed(result, error, elapsed_time)
         await ctx.followup.send(embed=embed)
 
@@ -99,7 +99,7 @@ class Sandboxpy(commands.Cog):
                 return
 
             progress_message = await message.channel.send("実行中...")
-            result, error, elapsed_time = await self.execute_code(code)
+            result, error, elapsed_time = await self.execute_codepy(code)
             embed = await self.create_result_embed(result, error, elapsed_time)
             await progress_message.edit(content=None, embed=embed)
 
