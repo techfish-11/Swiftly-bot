@@ -11,15 +11,12 @@ API_URL = "https://py-sandbox.evex.land/"
 SUPPORT_FOOTER = "API Powered by EvexDevelopers | Support Server: https://discord.gg/evex"
 
 
-class SandboxPy(commands.Cog):
+class Sandboxpy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.session = None
+        self.session = aiohttp.ClientSession()
 
-    async def cog_load(self):
-        self.session = await aiohttp.ClientSession().__aenter__()
-
-    async def create_result_embed_py(
+    async def create_result_embed(
         self,
         result: Optional[dict] = None,
         error: Optional[str] = None,
@@ -56,7 +53,7 @@ class SandboxPy(commands.Cog):
         embed.set_footer(text=SUPPORT_FOOTER)
         return embed
 
-    async def execute_code_py(self, code: str) -> tuple[Optional[dict], Optional[str], float]:
+    async def execute_code(self, code: str) -> tuple[Optional[dict], Optional[str], float]:
         headers = {"Content-Type": "application/json"}
         payload = {"code": code}
 
@@ -78,29 +75,29 @@ class SandboxPy(commands.Cog):
             return None, f"予期せぬエラー: {str(e)}", 0.0
 
     @discord.app_commands.command(
-        name="sandbox_py",
+        name="pysandbox",
         description="Python コードをサンドボックスで実行し、結果を返します。"
     )
-    async def sandbox_py(self, ctx: discord.Interaction, code: str) -> None:
+    async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
-        result, error, elapsed_time = await self.execute_code_py(code)
-        embed = await self.create_result_embed_py(result, error, elapsed_time)
+        result, error, elapsed_time = await self.execute_code(code)
+        embed = await self.create_result_embed(result, error, elapsed_time)
         await ctx.followup.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_message_py(self, message: discord.Message) -> None:
+    async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
             return
 
         if message.content.startswith("?pysandbox"):
             code = message.content[len("?pysandbox "):].strip()
             if not code:
-                await message.channel.send("実行するコードを入力してください。")
+                await message.channel.send("実行するPythonコードを入力してください。")
                 return
 
             progress_message = await message.channel.send("実行中...")
-            result, error, elapsed_time = await self.execute_code_py(code)
-            embed = await self.create_result_embed_py(result, error, elapsed_time)
+            result, error, elapsed_time = await self.execute_code(code)
+            embed = await self.create_result_embed(result, error, elapsed_time)
             await progress_message.edit(content=None, embed=embed)
 
     async def cog_unload(self) -> None:
@@ -109,4 +106,4 @@ class SandboxPy(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(SandboxPy(bot))
+    await bot.add_cog(Sandboxpy(bot))
