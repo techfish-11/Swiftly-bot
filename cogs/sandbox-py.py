@@ -19,7 +19,7 @@ class SandboxPy(commands.Cog):
     async def cog_load(self):
         self.session = await aiohttp.ClientSession().__aenter__()
 
-    async def create_result_embed(
+    async def create_result_embed_py(
         self,
         result: Optional[dict] = None,
         error: Optional[str] = None,
@@ -56,7 +56,7 @@ class SandboxPy(commands.Cog):
         embed.set_footer(text=SUPPORT_FOOTER)
         return embed
 
-    async def execute_codepy(self, code: str) -> tuple[Optional[dict], Optional[str], float]:
+    async def execute_code_py(self, code: str) -> tuple[Optional[dict], Optional[str], float]:
         headers = {"Content-Type": "application/json"}
         payload = {"code": code}
 
@@ -83,12 +83,12 @@ class SandboxPy(commands.Cog):
     )
     async def sandbox_py(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
-        result, error, elapsed_time = await self.execute_codepy(code)
-        embed = await self.create_result_embed(result, error, elapsed_time)
+        result, error, elapsed_time = await self.execute_code_py(code)
+        embed = await self.create_result_embed_py(result, error, elapsed_time)
         await ctx.followup.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message) -> None:
+    async def on_message_py(self, message: discord.Message) -> None:
         if message.author.bot:
             return
 
@@ -99,8 +99,8 @@ class SandboxPy(commands.Cog):
                 return
 
             progress_message = await message.channel.send("実行中...")
-            result, error, elapsed_time = await self.execute_codepy(code)
-            embed = await self.create_result_embed(result, error, elapsed_time)
+            result, error, elapsed_time = await self.execute_code_py(code)
+            embed = await self.create_result_embed_py(result, error, elapsed_time)
             await progress_message.edit(content=None, embed=embed)
 
     async def cog_unload(self) -> None:
