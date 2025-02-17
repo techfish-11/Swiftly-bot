@@ -14,7 +14,10 @@ SUPPORT_FOOTER = "API Powered by EvexDevelopers | Support Server: https://discor
 class Sandbox(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession()
+        self.session = None
+
+    async def cog_load(self):
+        self.session = await aiohttp.ClientSession().__aenter__()
 
     async def create_result_embed(
         self,
