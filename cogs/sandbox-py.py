@@ -11,7 +11,7 @@ API_URL = "https://py-sandbox.evex.land/"
 SUPPORT_FOOTER = "API Powered by EvexDevelopers | Support Server: https://discord.gg/evex"
 
 
-class Sandboxpy(commands.Cog):
+class SandboxPy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = None
@@ -78,10 +78,10 @@ class Sandboxpy(commands.Cog):
             return None, f"予期せぬエラー: {str(e)}", 0.0
 
     @discord.app_commands.command(
-        name="sandbox-py",
+        name="sandbox_py",
         description="Python コードをサンドボックスで実行し、結果を返します。"
     )
-    async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
+    async def sandbox_py(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
         result, error, elapsed_time = await self.execute_codepy(code)
         embed = await self.create_result_embed(result, error, elapsed_time)
@@ -109,4 +109,4 @@ class Sandboxpy(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(Sandboxpy(bot))
+    await bot.add_cog(SandboxPy(bot))
