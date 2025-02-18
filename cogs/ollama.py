@@ -13,12 +13,12 @@ class OllamaCog(commands.Cog):
         await interaction.response.defer(thinking=True)
         headers = {"Content-Type": "application/json"}
         json = {
-            "model": "hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF",
+            "model": "llama3.2",
             "stream": False,
             "messages": [
                 {
                     "role": "system",
-                    "content": "あなたはSakanaAI株式会社が開発したTinySwallowです。優秀なアシスタントです。"
+                    "content": "あなたはllama3.2です。優秀なアシスタントです。"
                 },
                 {
                     "role": "user",
