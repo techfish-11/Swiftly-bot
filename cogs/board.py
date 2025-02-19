@@ -30,6 +30,7 @@ class ServerBoard(commands.Cog):
     def setup_database(self):
         with sqlite3.connect('server_board.db') as conn:
             cursor = conn.cursor()
+            # テーブルが存在しない場合は作成
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS servers (
                     server_id INTEGER PRIMARY KEY,
@@ -42,6 +43,15 @@ class ServerBoard(commands.Cog):
                     invite_url TEXT
                 )
             ''')
+
+            # invite_url カラムが存在するか確認
+            cursor.execute("PRAGMA table_info(servers)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            # invite_url カラムがなければ追加
+            if 'invite_url' not in columns:
+                cursor.execute('ALTER TABLE servers ADD COLUMN invite_url TEXT')
+            
             conn.commit()
 
     @app_commands.command(name="register", description="サーバーを掲示板に登録します")
