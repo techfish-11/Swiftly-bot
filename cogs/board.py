@@ -47,66 +47,118 @@ class ServerBoard(commands.Cog):
     @app_commands.command(name="register", description="サーバーを掲示板に登録します")
     @app_commands.checks.has_permissions(administrator=True)
     async def register(self, interaction: discord.Interaction):
-        # まず応答を遅延させる
-        await interaction.response.defer(ephemeral=True)
-        
-        guild = interaction.guild
-        
-        with sqlite3.connect('server_board.db') as conn:
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM servers WHERE server_id = ?', (guild.id,))
-            if cursor.fetchone():
-                await interaction.followup.send("このサーバーは既に登録されています。", ephemeral=True)
-                return
-
-        # 招待リンクを作成（システムチャンネルまたは最初の書き込み可能なチャンネルで）
-        invite_channel = guild.system_channel or next((ch for ch in guild.text_channels if ch.permissions_for(guild.me).create_instant_invite), None)
-        if not invite_channel:
-            await interaction.followup.send("招待リンクを作成できるチャンネルがありません。ボットの権限を確認してください。", ephemeral=True)
-            return
-
         try:
-            invite = await invite_channel.create_invite(max_age=0, max_uses=0, reason="サーバー掲示板用の永続的な招待リンク")
-        except discord.Forbidden:
-            await interaction.followup.send("招待リンクを作成する権限がありません。", ephemeral=True)
-            return
-
-        embed = discord.Embed(
-            title="サーバー掲示板への登録",
-            description="以下の情報でサーバーを登録します。よろしければ✅を押してください。\n キャンセルする場合は❌を押してください。",
-            color=discord.Color.blue()
-        )
-        embed.add_field(name="サーバー名", value=guild.name)
-        embed.add_field(name="アイコン", value="設定済み" if guild.icon else "未設定")
-        embed.add_field(name="招待リンク", value=invite.url, inline=False)
-        embed.set_thumbnail(url=guild.icon.url if guild.icon else "")
-
-        class ConfirmView(discord.ui.View):
-            def __init__(self):
-                super().__init__(timeout=180.0)
-
-            @discord.ui.button(style=discord.ButtonStyle.success, emoji="✅", custom_id="confirm")
-            async def confirm(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.defer(ephemeral=True)
+            # まず応答を遅延させる
+            await interaction.response.defer(ephemeral=True)
+            
+            guild = interaction.guild
+            
+            # データベース接続のエラーハンドリング
+            try:
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
-                    cursor.execute('''
-                        INSERT INTO servers (server_id, server_name, icon_url, invite_url)
-                        VALUES (?, ?, ?, ?)
-                    ''', (guild.id, guild.name, guild.icon.url if guild.icon else None, invite.url))
-                    conn.commit()
-                await button_interaction.followup.send("サーバーを登録しました！", ephemeral=True)
-                await button_interaction.message.delete()
+                    cursor.execute('SELECT * FROM servers WHERE server_id = ?', (guild.id,))
+                    if cursor.fetchone():
+                        await interaction.followup.send("このサーバーは既に登録されています。", ephemeral=True)
+                        return
+            except sqlite3.Error as e:
+                await interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
+                return
 
-            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
-            async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.defer(ephemeral=True)
-                await invite.delete()  # キャンセル時は作成した招待も削除
-                await button_interaction.followup.send("登録をキャンセルしました。", ephemeral=True)
-                await button_interaction.message.delete()
+            # 招待リンクを作成（システムチャンネルまたは最初の書き込み可能なチャンネルで）
+            try:
+                invite_channel = guild.system_channel or next((ch for ch in guild.text_channels if ch.permissions_for(guild.me).create_instant_invite), None)
+                if not invite_channel:
+                    await interaction.followup.send("招待リンクを作成できるチャンネルがありません。ボットの権限を確認してください。", ephemeral=True)
+                    return
 
-        view = ConfirmView()
-        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+                try:
+                    invite = await invite_channel.create_invite(max_age=0, max_uses=0, reason="サーバー掲示板用の永続的な招待リンク")
+                except discord.Forbidden:
+                    await interaction.followup.send("招待リンクを作成する権限がありません。ボットに「招待リンクの作成」権限があることを確認してください。", ephemeral=True)
+                    return
+                except discord.HTTPException as e:
+                    await interaction.followup.send(f"招待リンクの作成中にエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
+                    return
+
+            except Exception as e:
+                await interaction.followup.send(f"招待リンク作成時に予期せぬエラーが発生しました。\nエラー: {str(e)}", ephemeral=True)
+                return
+
+            embed = discord.Embed(
+                title="サーバー掲示板への登録",
+                description="以下の情報でサーバーを登録します。よろしければ✅を押してください。\n キャンセルする場合は❌を押してください。",
+                color=discord.Color.blue()
+            )
+            embed.add_field(name="サーバー名", value=guild.name)
+            embed.add_field(name="アイコン", value="設定済み" if guild.icon else "未設定")
+            embed.add_field(name="招待リンク", value=invite.url, inline=False)
+            if guild.icon:
+                try:
+                    embed.set_thumbnail(url=guild.icon.url)
+                except:
+                    pass  # アイコンの設定に失敗しても続行
+
+            class ConfirmView(discord.ui.View):
+                def __init__(self):
+                    super().__init__(timeout=180.0)
+
+                @discord.ui.button(style=discord.ButtonStyle.success, emoji="✅", custom_id="confirm")
+                async def confirm(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                    try:
+                        await button_interaction.response.defer(ephemeral=True)
+                        try:
+                            with sqlite3.connect('server_board.db') as conn:
+                                cursor = conn.cursor()
+                                cursor.execute('''
+                                    INSERT INTO servers (server_id, server_name, icon_url, invite_url)
+                                    VALUES (?, ?, ?, ?)
+                                ''', (guild.id, guild.name, guild.icon.url if guild.icon else None, invite.url))
+                                conn.commit()
+                        except sqlite3.Error as e:
+                            await button_interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
+                            return
+                        
+                        await button_interaction.followup.send("サーバーを登録しました！", ephemeral=True)
+                        try:
+                            await button_interaction.message.delete()
+                        except:
+                            pass  # メッセージの削除に失敗しても無視
+                    except Exception as e:
+                        await button_interaction.followup.send(f"予期せぬエラーが発生しました。\nエラー: {str(e)}", ephemeral=True)
+
+                @discord.ui.button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
+                async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                    try:
+                        await button_interaction.response.defer(ephemeral=True)
+                        try:
+                            await invite.delete()  # キャンセル時は作成した招待も削除
+                        except:
+                            pass  # 招待の削除に失敗しても続行
+                        
+                        await button_interaction.followup.send("登録をキャンセルしました。", ephemeral=True)
+                        try:
+                            await button_interaction.message.delete()
+                        except:
+                            pass  # メッセージの削除に失敗しても無視
+                    except Exception as e:
+                        await button_interaction.followup.send(f"予期せぬエラーが発生しました。\nエラー: {str(e)}", ephemeral=True)
+
+                async def on_timeout(self):
+                    try:
+                        await invite.delete()  # タイムアウト時は作成した招待も削除
+                    except:
+                        pass
+
+            view = ConfirmView()
+            await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+
+        except Exception as e:
+            try:
+                await interaction.followup.send(f"予期せぬエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
+            except:
+                # interactionが既に失効している場合は何もしない
+                pass
 
     @app_commands.command(name="up", description="サーバーの表示順位を上げます")
     async def up_rank(self, interaction: discord.Interaction):
