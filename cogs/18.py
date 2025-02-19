@@ -81,7 +81,7 @@ class TimeRegister2(commands.Cog):
     @tasks.loop(minutes=1)
     async def check_time(self):
         now = datetime.now(JST)
-        if now.hour == 19 and now.minute == 19:
+        if now.hour == 8 and now.minute == 10:
             await self.send_notification()
 
     async def send_notification(self):
