@@ -79,7 +79,7 @@ class ServerBoard(commands.Cog):
                     conn.commit()
                 await button_interaction.response.edit_message(content="サーバーを登録しました！", view=None, embed=None)
 
-            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
+            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="✖", custom_id="cancel")
             async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
                 await button_interaction.response.edit_message(content="登録をキャンセルしました。", view=None, embed=None)
 
