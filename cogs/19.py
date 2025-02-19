@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands, tasks
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 DB_FILE = "registered_channels.db"
+JST = timezone(timedelta(hours=9))
 
 class TimeRegister(commands.Cog):
     def __init__(self, bot):
@@ -55,7 +56,7 @@ class TimeRegister(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def check_time(self):
-        now = datetime.now()
+        now = datetime.now(JST)
         if now.hour == 19 and now.minute == 19:
             await self.send_notification()
 
