@@ -1,0 +1,49 @@
+import discord
+from discord.ext import commands, tasks
+import sqlite3
+from datetime import datetime, timedelta, timezone
+
+JST = timezone(timedelta(hours=9))
+
+class TimeAlert(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.conn = sqlite3.connect('timealerts.db')
+        self.cursor = self.conn.cursor()
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS alerts
+                               (channel_id INTEGER, alert_time TEXT)''')
+        self.conn.commit()
+        self.check_alerts.start()
+
+    @discord.app_commands.command(name="time-signal", description="指定したチャンネルと時間に時報を設定します")
+    async def time_signal(self, interaction: discord.Interaction, channel: discord.TextChannel, time: str) -> None:
+        self.cursor.execute('SELECT COUNT(*) FROM alerts WHERE channel_id = ?', (channel.id,))
+        count = self.cursor.fetchone()[0]
+        if count >= 3:
+            await interaction.response.send_message("このチャンネルにはすでに3つの時報が設定されています。", ephemeral=True)
+            return
+
+        self.cursor.execute('INSERT INTO alerts (channel_id, alert_time) VALUES (?, ?)', (channel.id, time))
+        self.conn.commit()
+        await interaction.response.send_message(f"{channel.mention} に {time} の時報を設定しました。", ephemeral=True)
+
+    @tasks.loop(minutes=1)
+    async def check_alerts(self):
+        now = datetime.now(JST).strftime('%H:%M')
+        self.cursor.execute('SELECT channel_id FROM alerts WHERE alert_time = ?', (now,))
+        channels = self.cursor.fetchall()
+        for channel_id in channels:
+            channel = self.bot.get_channel(channel_id[0])
+            if channel:
+                await channel.send(f"時報です！現在の時刻は {now} です。")
+
+    @check_alerts.before_loop
+    async def before_check_alerts(self):
+        await self.bot.wait_until_ready()
+
+    def cog_unload(self):
+        self.check_alerts.cancel()
+        self.conn.close()
+
+async def setup(bot):
+    await bot.add_cog(TimeAlert(bot))
