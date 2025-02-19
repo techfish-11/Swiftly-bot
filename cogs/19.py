@@ -24,38 +24,34 @@ class TimeRegister(commands.Cog):
         conn.close()
 
     @discord.app_commands.command(name="register19", description="チャンネルを登録し、19時19分に通知します")
-    @discord.app_commands.describe(channel_id="通知対象のチャンネルID")
-    async def register19(self, interaction: discord.Interaction, channel_id: int) -> None:
-        # Ensure the command is being executed in a guild
+    @discord.app_commands.describe(channel="通知対象のチャンネル")
+    async def register19(self, interaction: discord.Interaction, channel: discord.TextChannel) -> None:
         if interaction.guild is None:
             await interaction.response.send_message("このコマンドはサーバー内のみで使用可能です。", ephemeral=True)
             return
 
-        # Ensure the user has administrator permissions
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("管理者権限のみコマンドを使用できます。", ephemeral=True)
             return
 
-        # Check that the channel belongs to the same guild
-        channel = self.bot.get_channel(channel_id)
-        if channel is None or (channel.guild and channel.guild.id != interaction.guild.id):
+        if channel.guild.id != interaction.guild.id:
             await interaction.response.send_message("指定されたチャンネルはこのサーバー内に存在しません。", ephemeral=True)
             return
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT OR IGNORE INTO channels (channel_id) VALUES (?)", (channel_id,))
+            cursor.execute("INSERT OR IGNORE INTO channels (channel_id) VALUES (?)", (channel.id,))
             conn.commit()
-            await interaction.response.send_message(f"チャンネルID {channel_id} を19時19分時報に登録しました。/register-remove19 で登録を解除できます。")
-        except Exception as e:
+            await interaction.response.send_message(f"チャンネルID {channel.id} を19時19分時報に登録しました。/register-remove19 で登録を解除できます。")
+        except Exception:
             await interaction.response.send_message("登録中にエラーが発生しました。", ephemeral=True)
         finally:
             conn.close()
 
     @discord.app_commands.command(name="register-remove19", description="登録解除し、19時19分の通知対象から外します")
-    @discord.app_commands.describe(channel_id="通知解除するチャンネルID")
-    async def unregister19(self, interaction: discord.Interaction, channel_id: int) -> None:
+    @discord.app_commands.describe(channel="通知解除するチャンネル")
+    async def unregister19(self, interaction: discord.Interaction, channel: discord.TextChannel) -> None:
         if interaction.guild is None:
             await interaction.response.send_message("このコマンドはサーバー内のみで使用可能です。", ephemeral=True)
             return
@@ -64,21 +60,20 @@ class TimeRegister(commands.Cog):
             await interaction.response.send_message("管理者権限のみコマンドを使用できます。", ephemeral=True)
             return
 
-        channel = self.bot.get_channel(channel_id)
-        if channel is None or (channel.guild and channel.guild.id != interaction.guild.id):
+        if channel.guild.id != interaction.guild.id:
             await interaction.response.send_message("指定されたチャンネルはこのサーバー内に存在しません。", ephemeral=True)
             return
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         try:
-            cursor.execute("DELETE FROM channels WHERE channel_id = ?", (channel_id,))
+            cursor.execute("DELETE FROM channels WHERE channel_id = ?", (channel.id,))
             conn.commit()
             if cursor.rowcount:
-                await interaction.response.send_message(f"チャンネルID {channel_id} の登録を解除しました。")
+                await interaction.response.send_message(f"チャンネルID {channel.id} の登録を解除しました。")
             else:
-                await interaction.response.send_message(f"チャンネルID {channel_id} は登録されていません。", ephemeral=True)
-        except Exception as e:
+                await interaction.response.send_message(f"チャンネルID {channel.id} は登録されていません。", ephemeral=True)
+        except Exception:
             await interaction.response.send_message("登録解除中にエラーが発生しました。", ephemeral=True)
         finally:
             conn.close()
@@ -102,7 +97,7 @@ class TimeRegister(commands.Cog):
                 try:
                     await channel.send("19時19分です！1919！")
                 except Exception:
-                    pass  # Optionally log the error
+                    pass
 
     @check_time.before_loop
     async def before_check_time(self):
