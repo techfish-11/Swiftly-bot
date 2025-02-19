@@ -40,8 +40,14 @@ class TimeRegister2(commands.Cog):
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM channels WHERE channel_id = ?", (channel.id,))
+        if cursor.fetchone():
+            await interaction.response.send_message(f"チャンネルID {channel.id} はすでに登録されています。", ephemeral=True)
+            conn.close()
+            return
+
         try:
-            cursor.execute("INSERT OR IGNORE INTO channels (channel_id) VALUES (?)", (channel.id,))
+            cursor.execute("INSERT INTO channels (channel_id) VALUES (?)", (channel.id,))
             conn.commit()
             await interaction.response.send_message(f"チャンネルID {channel.id} を8時10分時報に登録しました。/register-remove81 で登録を解除できます。")
         except Exception:
