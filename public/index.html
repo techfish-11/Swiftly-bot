@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Server Board</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .server-card {
+            transition: transform 0.2s;
+        }
+        .server-card:hover {
+            transform: translateY(-5px);
+        }
+        .server-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            object-fit: cover;
+        }
+        .description {
+            max-height: 100px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Discord Server Board</h1>
+        <div id="server-list" class="row g-4">
+            <!-- サーバーカードがここに動的に追加されます -->
+        </div>
+    </div>
+
+    <template id="server-card-template">
+        <div class="col-md-6 col-lg-4">
+            <div class="card server-card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="server-icon me-3" src="" alt="Server Icon">
+                        <h5 class="card-title mb-0"></h5>
+                    </div>
+                    <p class="card-text description"></p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">ランクポイント: <span class="rank-points"></span></small>
+                        <small class="text-muted registered-at"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        async function fetchServers() {
+            try {
+                const response = await fetch('https://sw.sakana11.org/servers');
+                const servers = await response.json();
+                const serverList = document.getElementById('server-list');
+                const template = document.getElementById('server-card-template');
+
+                serverList.innerHTML = ''; // Clear existing content
+
+                servers.forEach(server => {
+                    const clone = template.content.cloneNode(true);
+                    
+                    // アイコンの設定
+                    const icon = clone.querySelector('.server-icon');
+                    icon.src = server.icon_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+                    icon.alt = `${server.server_name} icon`;
+
+                    // サーバー名の設定
+                    clone.querySelector('.card-title').textContent = server.server_name;
+
+                    // 説明文の設定
+                    clone.querySelector('.description').textContent = 
+                        server.description || 'このサーバーはまだ説明文を設定していません。';
+
+                    // ランクポイントの設定
+                    clone.querySelector('.rank-points').textContent = server.rank_points;
+
+                    // 登録日時の設定
+                    const registeredDate = new Date(server.registered_at);
+                    clone.querySelector('.registered-at').textContent = 
+                        `登録: ${registeredDate.toLocaleDateString('ja-JP')}`;
+
+                    serverList.appendChild(clone);
+                });
+            } catch (error) {
+                console.error('Error fetching servers:', error);
+                document.getElementById('server-list').innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-danger" role="alert">
+                            サーバーの情報を取得できませんでした。しばらく経ってから再度お試しください。
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 初回読み込み
+        fetchServers();
+
+        // 1分ごとに更新
+        setInterval(fetchServers, 60000);
+    </script>
+</body>
+</html>

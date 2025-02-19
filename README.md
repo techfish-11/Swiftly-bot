@@ -51,6 +51,8 @@ Swiftly, a multi-function Discord bot
 - `/botadmin`
     Bot管理コマンド
 
+その他にも色々あります！
+
 ## コントリビューターのみなさんへ
 
 **Botのテスト方法**

@@ -11,3 +11,5 @@ edge-tts
 wikipedia
 opencv-python
 pyyaml
+fastapi
+uvicorn
