@@ -29,9 +29,9 @@ class Voice(commands.Cog):
         return text
 
     def limit_message(self, message: str) -> str:
-        # 100文字を超える場合は、最初の100文字と「省略」とする
-        if len(message) > 100:
-            return message[:100] + "省略"
+        # 75文字を超える場合は、最初の75文字と「省略」とする
+        if len(message) > 75:
+            return message[:75] + "省略"
         return message
 
     async def play_tts(self, guild_id, channel_id, message):
@@ -179,7 +179,7 @@ class Voice(commands.Cog):
 
         # Sanitize the message to replace URLs and mentions
         sanitized_message = self.sanitize_message(message)
-        # 100文字を超える場合は、先頭100文字と「省略」に変更
+        #75文字を超える場合は、先頭75文字と「省略」に変更
         sanitized_message = self.limit_message(sanitized_message)
 
         if guild_id not in self.locks:
@@ -232,7 +232,7 @@ class Voice(commands.Cog):
 
                 # Sanitize the message to replace URLs and mentions
                 sanitized_message = self.sanitize_message(message.content)
-                # 100文字を超える場合は、先頭100文字と「省略」に変更
+                # 75文字を超える場合は、先頭75文字と「省略」に変更
                 sanitized_message = self.limit_message(sanitized_message)
 
                 async with self.locks[guild_id]:
