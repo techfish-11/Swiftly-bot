@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 import tempfile
 
 import edge_tts
@@ -15,6 +16,16 @@ class Voice(commands.Cog):
         self.voice_clients = {}  # Track voice clients per guild and channel
         self.locks = {}  # Locks for each guild to prevent race conditions
         self.monitored_channels = {}  # Track monitored text channels per guild
+
+    def sanitize_message(self, text: str) -> str:
+        # Replace any URL with "URL省略"
+        text = re.sub(r'http[s]?://\S+', 'URL省略', text)
+        # Replace any user mention with "メンション省略"
+        text = re.sub(r'<@!?[0-9]+>', 'メンション省略', text)
+        # Replace role and channel mentions if needed
+        text = re.sub(r'<@&[0-9]+>', 'メンション省略', text)
+        text = re.sub(r'<#[0-9]+>', 'メンション省略', text)
+        return text
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
@@ -127,6 +138,9 @@ class Voice(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=False)
             return
 
+        # Sanitize the message to replace URLs and mentions
+        sanitized_message = self.sanitize_message(message)
+
         if guild_id not in self.locks:
             self.locks[guild_id] = asyncio.Lock()
 
@@ -138,7 +152,7 @@ class Voice(commands.Cog):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
                     temp_filename = temp_audio_file.name
 
-                tts = edge_tts.Communicate(message, VOICE)
+                tts = edge_tts.Communicate(sanitized_message, VOICE)
                 await tts.save(temp_filename)
 
                 # Stop current playback if any, then play new audio
@@ -147,12 +161,11 @@ class Voice(commands.Cog):
 
                 voice_client.play(
                     discord.FFmpegPCMAudio(temp_filename),
-                    after=lambda e: os.remove(temp_filename) if os.path.exists(
-                        temp_filename) else None
+                    after=lambda e: os.remove(temp_filename) if os.path.exists(temp_filename) else None
                 )
 
                 embed = discord.Embed(
-                    description=f"📢 メッセージを読み上げました: {message}",
+                    description=f"📢 メッセージを読み上げました: {sanitized_message}",
                     color=discord.Color.green()
                 )
                 await interaction.response.send_message(embed=embed, ephemeral=False)
@@ -177,6 +190,8 @@ class Voice(commands.Cog):
 
         guild_id = message.guild.id
         if guild_id in self.monitored_channels and message.channel.id == self.monitored_channels[guild_id]:
+            if not message.author.voice:
+                return
             voice_channel = message.author.voice.channel
             channel_id = voice_channel.id
 
@@ -186,13 +201,16 @@ class Voice(commands.Cog):
                 if guild_id not in self.locks:
                     self.locks[guild_id] = asyncio.Lock()
 
+                # Sanitize the message to replace URLs and mentions
+                sanitized_message = self.sanitize_message(message.content)
+
                 async with self.locks[guild_id]:
                     try:
                         # Generate TTS audio using edge_tts
                         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
                             temp_filename = temp_audio_file.name
 
-                        tts = edge_tts.Communicate(message.content, VOICE)
+                        tts = edge_tts.Communicate(sanitized_message, VOICE)
                         await tts.save(temp_filename)
 
                         # Stop current playback if any, then play new audio
