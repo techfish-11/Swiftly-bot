@@ -29,6 +29,7 @@ class Server(BaseModel):
     rank_points: int
     last_up_time: Optional[datetime] = None
     registered_at: datetime
+    invite_url: Optional[str] = None
 
 @app.get("/api/servers", response_model=List[Server])
 async def get_servers():

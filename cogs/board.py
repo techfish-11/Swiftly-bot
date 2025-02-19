@@ -38,7 +38,8 @@ class ServerBoard(commands.Cog):
                     description TEXT,
                     rank_points INTEGER DEFAULT 0,
                     last_up_time TIMESTAMP,
-                    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    invite_url TEXT
                 )
             ''')
             conn.commit()
@@ -55,6 +56,18 @@ class ServerBoard(commands.Cog):
                 await interaction.response.send_message("このサーバーは既に登録されています。", ephemeral=True)
                 return
 
+        # 招待リンクを作成（システムチャンネルまたは最初の書き込み可能なチャンネルで）
+        invite_channel = guild.system_channel or next((ch for ch in guild.text_channels if ch.permissions_for(guild.me).create_instant_invite), None)
+        if not invite_channel:
+            await interaction.response.send_message("招待リンクを作成できるチャンネルがありません。ボットの権限を確認してください。", ephemeral=True)
+            return
+
+        try:
+            invite = await invite_channel.create_invite(max_age=0, max_uses=0, reason="サーバー掲示板用の永続的な招待リンク")
+        except discord.Forbidden:
+            await interaction.response.send_message("招待リンクを作成する権限がありません。", ephemeral=True)
+            return
+
         embed = discord.Embed(
             title="サーバー掲示板への登録",
             description="以下の情報でサーバーを登録します。よろしければ✅を押してください。\n キャンセルする場合は❌を押してください。",
@@ -62,6 +75,7 @@ class ServerBoard(commands.Cog):
         )
         embed.add_field(name="サーバー名", value=guild.name)
         embed.add_field(name="アイコン", value="設定済み" if guild.icon else "未設定")
+        embed.add_field(name="招待リンク", value=invite.url, inline=False)
         embed.set_thumbnail(url=guild.icon.url if guild.icon else "")
 
         class ConfirmView(discord.ui.View):
@@ -73,14 +87,15 @@ class ServerBoard(commands.Cog):
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
                     cursor.execute('''
-                        INSERT INTO servers (server_id, server_name, icon_url)
-                        VALUES (?, ?, ?)
-                    ''', (guild.id, guild.name, guild.icon.url if guild.icon else None))
+                        INSERT INTO servers (server_id, server_name, icon_url, invite_url)
+                        VALUES (?, ?, ?, ?)
+                    ''', (guild.id, guild.name, guild.icon.url if guild.icon else None, invite.url))
                     conn.commit()
                 await button_interaction.response.edit_message(content="サーバーを登録しました！", view=None, embed=None)
 
-            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="✖", custom_id="cancel")
+            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
             async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                await invite.delete()  # キャンセル時は作成した招待も削除
                 await button_interaction.response.edit_message(content="登録をキャンセルしました。", view=None, embed=None)
 
         view = ConfirmView()
