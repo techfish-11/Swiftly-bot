@@ -47,25 +47,28 @@ class ServerBoard(commands.Cog):
     @app_commands.command(name="register", description="サーバーを掲示板に登録します")
     @app_commands.checks.has_permissions(administrator=True)
     async def register(self, interaction: discord.Interaction):
+        # まず応答を遅延させる
+        await interaction.response.defer(ephemeral=True)
+        
         guild = interaction.guild
         
         with sqlite3.connect('server_board.db') as conn:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM servers WHERE server_id = ?', (guild.id,))
             if cursor.fetchone():
-                await interaction.response.send_message("このサーバーは既に登録されています。", ephemeral=True)
+                await interaction.followup.send("このサーバーは既に登録されています。", ephemeral=True)
                 return
 
         # 招待リンクを作成（システムチャンネルまたは最初の書き込み可能なチャンネルで）
         invite_channel = guild.system_channel or next((ch for ch in guild.text_channels if ch.permissions_for(guild.me).create_instant_invite), None)
         if not invite_channel:
-            await interaction.response.send_message("招待リンクを作成できるチャンネルがありません。ボットの権限を確認してください。", ephemeral=True)
+            await interaction.followup.send("招待リンクを作成できるチャンネルがありません。ボットの権限を確認してください。", ephemeral=True)
             return
 
         try:
             invite = await invite_channel.create_invite(max_age=0, max_uses=0, reason="サーバー掲示板用の永続的な招待リンク")
         except discord.Forbidden:
-            await interaction.response.send_message("招待リンクを作成する権限がありません。", ephemeral=True)
+            await interaction.followup.send("招待リンクを作成する権限がありません。", ephemeral=True)
             return
 
         embed = discord.Embed(
@@ -84,6 +87,7 @@ class ServerBoard(commands.Cog):
 
             @discord.ui.button(style=discord.ButtonStyle.success, emoji="✅", custom_id="confirm")
             async def confirm(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                await button_interaction.response.defer(ephemeral=True)
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
                     cursor.execute('''
@@ -91,15 +95,18 @@ class ServerBoard(commands.Cog):
                         VALUES (?, ?, ?, ?)
                     ''', (guild.id, guild.name, guild.icon.url if guild.icon else None, invite.url))
                     conn.commit()
-                await button_interaction.response.edit_message(content="サーバーを登録しました！", view=None, embed=None)
+                await button_interaction.followup.send("サーバーを登録しました！", ephemeral=True)
+                await button_interaction.message.delete()
 
             @discord.ui.button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
             async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                await button_interaction.response.defer(ephemeral=True)
                 await invite.delete()  # キャンセル時は作成した招待も削除
-                await button_interaction.response.edit_message(content="登録をキャンセルしました。", view=None, embed=None)
+                await button_interaction.followup.send("登録をキャンセルしました。", ephemeral=True)
+                await button_interaction.message.delete()
 
         view = ConfirmView()
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="up", description="サーバーの表示順位を上げます")
     async def up_rank(self, interaction: discord.Interaction):
@@ -173,18 +180,23 @@ class ServerBoard(commands.Cog):
 
             @discord.ui.button(style=discord.ButtonStyle.danger, emoji="✅", custom_id="confirm")
             async def confirm(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                await button_interaction.response.defer(ephemeral=True)
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
                     cursor.execute('DELETE FROM servers WHERE server_id = ?', (interaction.guild.id,))
                     if cursor.rowcount > 0:
                         conn.commit()
-                        await button_interaction.response.edit_message(content="サーバーの登録を削除しました。", view=None, embed=None)
+                        await button_interaction.followup.send("サーバーの登録を削除しました。", ephemeral=True)
+                        await button_interaction.message.delete()
                     else:
-                        await button_interaction.response.edit_message(content="このサーバーは登録されていません。", view=None, embed=None)
+                        await button_interaction.followup.send("このサーバーは登録されていません。", ephemeral=True)
+                        await button_interaction.message.delete()
 
             @discord.ui.button(style=discord.ButtonStyle.secondary, emoji="❌", custom_id="cancel")
             async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.edit_message(content="登録削除をキャンセルしました。", view=None, embed=None)
+                await button_interaction.response.defer(ephemeral=True)
+                await button_interaction.followup.send("登録削除をキャンセルしました。", ephemeral=True)
+                await button_interaction.message.delete()
 
         view = UnregisterView()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
