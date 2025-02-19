@@ -29,7 +29,7 @@ class LoveCalculator(commands.Cog):
             embed = discord.Embed(title="💖 Love Calculator 💖", color=discord.Color.pink())
             embed.add_field(name="ユーザー1", value=name1, inline=True)
             embed.add_field(name="ユーザー2", value=name2, inline=True)
-            embed.add_field(name="相性結果", value=f"**{name1} → {name2}**\n好感度：{love_score[1]}%\n性欲：{love_score[3]}\n\n**{name2} → {name1}**\n好感度：{love_score[2]}%\n性欲：{love_score[4]}", inline=False)
+            embed.add_field(name="相性結果", value=f"**{name1} → {name2}**\n好感度：{love_score[1]}%\n**{name2} → {name1}**\n好感度：{love_score[2]}%", inline=False)
             embed.add_field(name="総合相性（好感度平均）", value=f"{love_score[0]}%", inline=False)
             embed.add_field(name="メッセージ", value=message, inline=False)
             await interaction.response.send_message(embed=embed)
@@ -141,13 +141,11 @@ class LoveCalculator(commands.Cog):
 
         user1_to_user2_friend = random.randint(0, 100)
         user2_to_user1_friend = random.randint(0, 100)
-        user1_to_user2_sex = random.randint(0, user1_to_user2_friend)
-        user2_to_user1_sex = random.randint(0, user2_to_user1_friend)
         love_score = (user1_to_user2_friend + user2_to_user1_friend) // 2
         if name1 > name2:
-            return [love_score, user1_to_user2_friend, user2_to_user1_friend, user1_to_user2_sex, user2_to_user1_sex]
+            return [love_score, user1_to_user2_friend, user2_to_user1_friend]
         else:
-            return [love_score, user2_to_user1_friend, user1_to_user2_friend, user2_to_user1_sex, user1_to_user2_sex]
+            return [love_score, user2_to_user1_friend, user1_to_user2_friend]
 
     def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
         if user1_to_user2 - user2_to_user1 > 70:
