@@ -15,17 +15,25 @@ class TimeAlert(commands.Cog):
         self.conn.commit()
         self.check_alerts.start()
 
+    @commands.has_permissions(administrator=True)
     @discord.app_commands.command(name="time-signal", description="指定したチャンネルと時間に時報を設定します")
     async def time_signal(self, interaction: discord.Interaction, channel: discord.TextChannel, time: str) -> None:
         self.cursor.execute('SELECT COUNT(*) FROM alerts WHERE channel_id = ?', (channel.id,))
         count = self.cursor.fetchone()[0]
         if count >= 3:
-            await interaction.response.send_message("このチャンネルにはすでに3つの時報が設定されています。", ephemeral=True)
+            await interaction.response.send_message("このチャンネルにはすでに3つの時報が設定されています。", ephemeral=False)
             return
 
         self.cursor.execute('INSERT INTO alerts (channel_id, alert_time) VALUES (?, ?)', (channel.id, time))
         self.conn.commit()
-        await interaction.response.send_message(f"{channel.mention} に {time} の時報を設定しました。", ephemeral=True)
+        await interaction.response.send_message(f"{channel.mention} に {time} の時報を設定しました。/remove-time-signalで、登録を解除できます。", ephemeral=False)
+
+    @commands.has_permissions(administrator=True)
+    @discord.app_commands.command(name="remove-time-signal", description="指定したチャンネルの時報を解除します")
+    async def remove_time_signal(self, interaction: discord.Interaction, channel: discord.TextChannel, time: str) -> None:
+        self.cursor.execute('DELETE FROM alerts WHERE channel_id = ? AND alert_time = ?', (channel.id, time))
+        self.conn.commit()
+        await interaction.response.send_message(f"{channel.mention} の {time} の時報を解除しました。", ephemeral=False)
 
     @tasks.loop(minutes=1)
     async def check_alerts(self):
