@@ -60,7 +60,7 @@ class ServerBoard(commands.Cog):
         # 確認用の埋め込みメッセージを作成
         embed = discord.Embed(
             title="サーバー掲示板への登録",
-            description="以下の情報でサーバーを登録します。よろしければ✅を押してください。",
+            description="以下の情報でサーバーを登録します。よろしければ✅を押してください。\n キャンセルする場合は❌を押してください。",
             color=discord.Color.blue()
         )
         embed.add_field(name="サーバー名", value=guild.name)
@@ -69,7 +69,7 @@ class ServerBoard(commands.Cog):
 
         # ボタンを作成
         confirm_button = discord.ui.Button(style=discord.ButtonStyle.success, emoji="✅", custom_id="confirm")
-        cancel_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
+        cancel_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="✖", custom_id="cancel")
 
         # ビューを作成
         view = discord.ui.View()
