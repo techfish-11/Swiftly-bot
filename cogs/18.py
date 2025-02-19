@@ -95,7 +95,7 @@ class TimeRegister2(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel:
                 try:
-                    await channel.send("19時19分です！1919！")
+                    await channel.send("8時10分です！")
                 except Exception:
                     pass
 
