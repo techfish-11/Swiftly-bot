@@ -46,10 +46,8 @@ class ServerBoard(commands.Cog):
     @app_commands.command(name="register", description="サーバーを掲示板に登録します")
     @app_commands.checks.has_permissions(administrator=True)
     async def register(self, interaction: discord.Interaction):
-        # サーバー情報を取得
         guild = interaction.guild
         
-        # すでに登録されているか確認
         with sqlite3.connect('server_board.db') as conn:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM servers WHERE server_id = ?', (guild.id,))
@@ -57,7 +55,6 @@ class ServerBoard(commands.Cog):
                 await interaction.response.send_message("このサーバーは既に登録されています。", ephemeral=True)
                 return
 
-        # 確認用の埋め込みメッセージを作成
         embed = discord.Embed(
             title="サーバー掲示板への登録",
             description="以下の情報でサーバーを登録します。よろしければ✅を押してください。\n キャンセルする場合は❌を押してください。",
@@ -67,18 +64,12 @@ class ServerBoard(commands.Cog):
         embed.add_field(name="アイコン", value="設定済み" if guild.icon else "未設定")
         embed.set_thumbnail(url=guild.icon.url if guild.icon else "")
 
-        # ボタンを作成
-        confirm_button = discord.ui.Button(style=discord.ButtonStyle.success, emoji="✅", custom_id="confirm")
-        cancel_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="✖", custom_id="cancel")
+        class ConfirmView(discord.ui.View):
+            def __init__(self):
+                super().__init__(timeout=180.0)
 
-        # ビューを作成
-        view = discord.ui.View()
-        view.add_item(confirm_button)
-        view.add_item(cancel_button)
-
-        async def button_callback(button_interaction: discord.Interaction):
-            if button_interaction.custom_id == "confirm":
-                # データベースに登録
+            @discord.ui.button(style=discord.ButtonStyle.success, emoji="✅", custom_id="confirm")
+            async def confirm(self, button_interaction: discord.Interaction, button: discord.ui.Button):
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
                     cursor.execute('''
@@ -87,13 +78,12 @@ class ServerBoard(commands.Cog):
                     ''', (guild.id, guild.name, guild.icon.url if guild.icon else None))
                     conn.commit()
                 await button_interaction.response.edit_message(content="サーバーを登録しました！", view=None, embed=None)
-            else:
+
+            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="❌", custom_id="cancel")
+            async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
                 await button_interaction.response.edit_message(content="登録をキャンセルしました。", view=None, embed=None)
 
-        # ボタンのコールバックを設定
-        confirm_button.callback = button_callback
-        cancel_button.callback = button_callback
-
+        view = ConfirmView()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="up", description="サーバーの表示順位を上げます")
