@@ -14,6 +14,7 @@ class Voice(commands.Cog):
         self.bot = bot
         self.voice_clients = {}  # Track voice clients per guild and channel
         self.locks = {}  # Locks for each guild to prevent race conditions
+        self.monitored_channels = {}  # Track monitored text channels per guild
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
@@ -42,6 +43,9 @@ class Voice(commands.Cog):
             # Mute the bot
             voice_client = self.voice_clients[guild_id][channel_id]
             await voice_client.guild.change_voice_state(channel=voice_client.channel, self_deaf=True)
+
+            # Monitor the text channel where the join command was issued
+            self.monitored_channels[guild_id] = interaction.channel.id
 
             embed = discord.Embed(
                 description=f"✅ {voice_channel.name} に参加しました。",
@@ -83,6 +87,10 @@ class Voice(commands.Cog):
             del self.voice_clients[guild_id][channel_id]
             if not self.voice_clients[guild_id]:
                 del self.voice_clients[guild_id]
+
+            # Stop monitoring the text channel
+            if guild_id in self.monitored_channels:
+                del self.monitored_channels[guild_id]
 
             embed = discord.Embed(
                 description="👋 ボイスチャンネルから退出しました。",
@@ -161,6 +169,42 @@ class Voice(commands.Cog):
         if voice_client:
             if len(voice_client.channel.members) == 1:  # ボットだけが残っている場合
                 await voice_client.disconnect()
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+
+        guild_id = message.guild.id
+        if guild_id in self.monitored_channels and message.channel.id == self.monitored_channels[guild_id]:
+            voice_channel = message.author.voice.channel
+            channel_id = voice_channel.id
+
+            if guild_id in self.voice_clients and channel_id in self.voice_clients[guild_id]:
+                voice_client = self.voice_clients[guild_id][channel_id]
+
+                if guild_id not in self.locks:
+                    self.locks[guild_id] = asyncio.Lock()
+
+                async with self.locks[guild_id]:
+                    try:
+                        # Generate TTS audio using edge_tts
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+                            temp_filename = temp_audio_file.name
+
+                        tts = edge_tts.Communicate(message.content, VOICE)
+                        await tts.save(temp_filename)
+
+                        # Stop current playback if any, then play new audio
+                        if voice_client.is_playing():
+                            voice_client.stop()
+
+                        voice_client.play(
+                            discord.FFmpegPCMAudio(temp_filename),
+                            after=lambda e: os.remove(temp_filename) if os.path.exists(temp_filename) else None
+                        )
+                    except Exception as e:
+                        print(f"エラーが発生しました: {e}")
 
 
 async def setup(bot):
