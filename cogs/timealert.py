@@ -18,6 +18,12 @@ class TimeAlert(commands.Cog):
     @commands.has_permissions(administrator=True)
     @discord.app_commands.command(name="time-signal", description="指定したチャンネルと時間に時報を設定します")
     async def time_signal(self, interaction: discord.Interaction, channel: discord.TextChannel, time: str) -> None:
+        try:
+            datetime.strptime(time, '%H:%M')
+        except ValueError:
+            await interaction.response.send_message("時間のフォーマットが正しくありません。正しいフォーマットは HH:MM です。", ephemeral=False)
+            return
+
         self.cursor.execute('SELECT COUNT(*) FROM alerts WHERE channel_id = ?', (channel.id,))
         count = self.cursor.fetchone()[0]
         if count >= 3:
@@ -31,6 +37,12 @@ class TimeAlert(commands.Cog):
     @commands.has_permissions(administrator=True)
     @discord.app_commands.command(name="remove-time-signal", description="指定したチャンネルの時報を解除します")
     async def remove_time_signal(self, interaction: discord.Interaction, channel: discord.TextChannel, time: str) -> None:
+        try:
+            datetime.strptime(time, '%H:%M')
+        except ValueError:
+            await interaction.response.send_message("時間のフォーマットが正しくありません。正しいフォーマットは HH:MM です。", ephemeral=False)
+            return
+
         self.cursor.execute('DELETE FROM alerts WHERE channel_id = ? AND alert_time = ?', (channel.id, time))
         self.conn.commit()
         await interaction.response.send_message(f"{channel.mention} の {time} の時報を解除しました。", ephemeral=False)
