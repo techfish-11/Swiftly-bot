@@ -97,7 +97,6 @@ class ServerBoard(commands.Cog):
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="up", description="サーバーの表示順位を上げます")
-    @app_commands.checks.has_permissions(administrator=True)
     async def up_rank(self, interaction: discord.Interaction):
         with sqlite3.connect('server_board.db') as conn:
             cursor = conn.cursor()
@@ -115,10 +114,10 @@ class ServerBoard(commands.Cog):
             
             if last_up_time:
                 last_up = datetime.datetime.fromisoformat(last_up_time)
-                if (current_time - last_up).total_seconds() < 43200:  # 12時間
-                    remaining_time = last_up + datetime.timedelta(hours=12) - current_time
+                if (current_time - last_up).total_seconds() < 7200:  # 2時間
+                    remaining_time = last_up + datetime.timedelta(hours=2) - current_time
                     await interaction.response.send_message(
-                        f"upコマンドは12時間に1回のみ使用できます。\n残り時間: {str(remaining_time).split('.')[0]}",
+                        f"upコマンドは2時間に1回のみ使用できます。\n残り時間: {str(remaining_time).split('.')[0]}",
                         ephemeral=True
                     )
                     return
@@ -132,7 +131,7 @@ class ServerBoard(commands.Cog):
             ''', (current_time.isoformat(), interaction.guild.id))
             conn.commit()
 
-            await interaction.response.send_message("サーバーの表示順位を上げました！", ephemeral=True)
+            await interaction.response.send_message("サーバーの表示順位を上げました！", ephemeral=False)
 
     @app_commands.command(name="board-setting", description="サーバーの説明文を設定します")
     @app_commands.checks.has_permissions(administrator=True)
@@ -153,6 +152,45 @@ class ServerBoard(commands.Cog):
             modal.description.default = result[0]
             
         await interaction.response.send_modal(modal)
+
+    @app_commands.command(name="unregister", description="サーバーの登録を削除します")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def unregister(self, interaction: discord.Interaction):
+        # 確認用の埋め込みメッセージを作成
+        embed = discord.Embed(
+            title="サーバー掲示板からの登録削除",
+            description="本当にこのサーバーの登録を削除しますか？\nこの操作は取り消せません。",
+            color=discord.Color.red()
+        )
+
+        # ボタンを作成
+        confirm_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="✅", custom_id="confirm")
+        cancel_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji="❌", custom_id="cancel")
+
+        # ビューを作成
+        view = discord.ui.View()
+        view.add_item(confirm_button)
+        view.add_item(cancel_button)
+
+        async def button_callback(button_interaction: discord.Interaction):
+            if button_interaction.custom_id == "confirm":
+                # データベースから削除
+                with sqlite3.connect('server_board.db') as conn:
+                    cursor = conn.cursor()
+                    cursor.execute('DELETE FROM servers WHERE server_id = ?', (interaction.guild.id,))
+                    if cursor.rowcount > 0:
+                        conn.commit()
+                        await button_interaction.response.edit_message(content="サーバーの登録を削除しました。", view=None, embed=None)
+                    else:
+                        await button_interaction.response.edit_message(content="このサーバーは登録されていません。", view=None, embed=None)
+            else:
+                await button_interaction.response.edit_message(content="登録削除をキャンセルしました。", view=None, embed=None)
+
+        # ボタンのコールバックを設定
+        confirm_button.callback = button_callback
+        cancel_button.callback = button_callback
+
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(ServerBoard(bot))
