@@ -16,6 +16,7 @@ class Voice(commands.Cog):
         self.voice_clients = {}  # Track voice clients per guild and channel
         self.locks = {}  # Locks for each guild to prevent race conditions
         self.monitored_channels = {}  # Track monitored text channels per guild
+        self.tts_queues = {}  # Queues for TTS messages per guild
 
     def sanitize_message(self, text: str) -> str:
         # Replace any URL with "URL省略"
@@ -26,6 +27,27 @@ class Voice(commands.Cog):
         text = re.sub(r'<@&[0-9]+>', 'メンション省略', text)
         text = re.sub(r'<#[0-9]+>', 'メンション省略', text)
         return text
+
+    async def play_tts(self, guild_id, channel_id, message):
+        voice_client = self.voice_clients[guild_id][channel_id]
+
+        # Generate TTS audio using edge_tts
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+            temp_filename = temp_audio_file.name
+
+        tts = edge_tts.Communicate(message, VOICE)
+        await tts.save(temp_filename)
+
+        def after_playing(error):
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+            # Play next message in the queue
+            if self.tts_queues[guild_id][channel_id]:
+                next_message = self.tts_queues[guild_id][channel_id].pop(0)
+                asyncio.run_coroutine_threadsafe(self.play_tts(guild_id, channel_id, next_message), self.bot.loop)
+
+        # Play the audio
+        voice_client.play(discord.FFmpegPCMAudio(temp_filename), after=after_playing)
 
     @discord.app_commands.command(name="join", description="ボイスチャンネルに参加します")
     async def join(self, interaction: discord.Interaction):
@@ -57,6 +79,11 @@ class Voice(commands.Cog):
 
             # Monitor the text channel where the join command was issued
             self.monitored_channels[guild_id] = interaction.channel.id
+
+            # Initialize TTS queue for the guild and channel
+            if guild_id not in self.tts_queues:
+                self.tts_queues[guild_id] = {}
+            self.tts_queues[guild_id][channel_id] = []
 
             embed = discord.Embed(
                 description=f"✅ {voice_channel.name} に参加しました。",
@@ -103,6 +130,12 @@ class Voice(commands.Cog):
             if guild_id in self.monitored_channels:
                 del self.monitored_channels[guild_id]
 
+            # Clear TTS queue for the guild and channel
+            if guild_id in self.tts_queues and channel_id in self.tts_queues[guild_id]:
+                del self.tts_queues[guild_id][channel_id]
+                if not self.tts_queues[guild_id]:
+                    del self.tts_queues[guild_id]
+
             embed = discord.Embed(
                 description="👋 ボイスチャンネルから退出しました。",
                 color=discord.Color.green()
@@ -146,23 +179,13 @@ class Voice(commands.Cog):
 
         async with self.locks[guild_id]:
             try:
-                voice_client = self.voice_clients[guild_id][channel_id]
+                # Add message to the queue
+                self.tts_queues[guild_id][channel_id].append(sanitized_message)
 
-                # Generate TTS audio using edge_tts
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-                    temp_filename = temp_audio_file.name
-
-                tts = edge_tts.Communicate(sanitized_message, VOICE)
-                await tts.save(temp_filename)
-
-                # Stop current playback if any, then play new audio
-                if voice_client.is_playing():
-                    voice_client.stop()
-
-                voice_client.play(
-                    discord.FFmpegPCMAudio(temp_filename),
-                    after=lambda e: os.remove(temp_filename) if os.path.exists(temp_filename) else None
-                )
+                # If not currently playing, start playing
+                if not self.voice_clients[guild_id][channel_id].is_playing():
+                    next_message = self.tts_queues[guild_id][channel_id].pop(0)
+                    await self.play_tts(guild_id, channel_id, next_message)
 
                 embed = discord.Embed(
                     description=f"📢 メッセージを読み上げました: {sanitized_message}",
@@ -196,8 +219,6 @@ class Voice(commands.Cog):
             channel_id = voice_channel.id
 
             if guild_id in self.voice_clients and channel_id in self.voice_clients[guild_id]:
-                voice_client = self.voice_clients[guild_id][channel_id]
-
                 if guild_id not in self.locks:
                     self.locks[guild_id] = asyncio.Lock()
 
@@ -206,21 +227,13 @@ class Voice(commands.Cog):
 
                 async with self.locks[guild_id]:
                     try:
-                        # Generate TTS audio using edge_tts
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-                            temp_filename = temp_audio_file.name
+                        # Add message to the queue
+                        self.tts_queues[guild_id][channel_id].append(sanitized_message)
 
-                        tts = edge_tts.Communicate(sanitized_message, VOICE)
-                        await tts.save(temp_filename)
-
-                        # Stop current playback if any, then play new audio
-                        if voice_client.is_playing():
-                            voice_client.stop()
-
-                        voice_client.play(
-                            discord.FFmpegPCMAudio(temp_filename),
-                            after=lambda e: os.remove(temp_filename) if os.path.exists(temp_filename) else None
-                        )
+                        # If not currently playing, start playing
+                        if not self.voice_clients[guild_id][channel_id].is_playing():
+                            next_message = self.tts_queues[guild_id][channel_id].pop(0)
+                            await self.play_tts(guild_id, channel_id, next_message)
                     except Exception as e:
                         print(f"エラーが発生しました: {e}")
 
