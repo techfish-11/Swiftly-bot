@@ -31,7 +31,7 @@ class TimeRegister(commands.Cog):
         try:
             cursor.execute("INSERT OR IGNORE INTO channels (channel_id) VALUES (?)", (channel_id,))
             conn.commit()
-            await interaction.response.send_message(f"チャンネルID {channel_id} を登録しました。/register-remove19 で登録を解除できます。")
+            await interaction.response.send_message(f"チャンネルID {channel_id} を19時19分時報に登録しました。/register-remove19 で登録を解除できます。")
         except Exception as e:
             await interaction.response.send_message("登録中にエラーが発生しました。")
         finally:
