@@ -146,25 +146,18 @@ class ServerBoard(commands.Cog):
     @app_commands.command(name="unregister", description="サーバーの登録を削除します")
     @app_commands.checks.has_permissions(administrator=True)
     async def unregister(self, interaction: discord.Interaction):
-        # 確認用の埋め込みメッセージを作成
         embed = discord.Embed(
             title="サーバー掲示板からの登録削除",
             description="本当にこのサーバーの登録を削除しますか？\nこの操作は取り消せません。",
             color=discord.Color.red()
         )
 
-        # ボタンを作成
-        confirm_button = discord.ui.Button(style=discord.ButtonStyle.danger, emoji="✅", custom_id="confirm")
-        cancel_button = discord.ui.Button(style=discord.ButtonStyle.secondary, emoji="❌", custom_id="cancel")
+        class UnregisterView(discord.ui.View):
+            def __init__(self):
+                super().__init__(timeout=180.0)
 
-        # ビューを作成
-        view = discord.ui.View()
-        view.add_item(confirm_button)
-        view.add_item(cancel_button)
-
-        async def button_callback(button_interaction: discord.Interaction):
-            if button_interaction.custom_id == "confirm":
-                # データベースから削除
+            @discord.ui.button(style=discord.ButtonStyle.danger, emoji="✅", custom_id="confirm")
+            async def confirm(self, button_interaction: discord.Interaction, button: discord.ui.Button):
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
                     cursor.execute('DELETE FROM servers WHERE server_id = ?', (interaction.guild.id,))
@@ -173,13 +166,12 @@ class ServerBoard(commands.Cog):
                         await button_interaction.response.edit_message(content="サーバーの登録を削除しました。", view=None, embed=None)
                     else:
                         await button_interaction.response.edit_message(content="このサーバーは登録されていません。", view=None, embed=None)
-            else:
+
+            @discord.ui.button(style=discord.ButtonStyle.secondary, emoji="❌", custom_id="cancel")
+            async def cancel(self, button_interaction: discord.Interaction, button: discord.ui.Button):
                 await button_interaction.response.edit_message(content="登録削除をキャンセルしました。", view=None, embed=None)
 
-        # ボタンのコールバックを設定
-        confirm_button.callback = button_callback
-        cancel_button.callback = button_callback
-
+        view = UnregisterView()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot):
