@@ -14,7 +14,7 @@ intents.members = True
 intents.messages = True
 intents.message_content = True
 
-client = discord.AutoShardedClient(intents=intents)
+client = discord.AutoShardedClient(intents=intents, shard_count=10)
 bot = commands.Bot(command_prefix="sw!", intents=intents, client=client)
 
 # tokenを.envファイルから取得
