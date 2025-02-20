@@ -25,4 +25,3 @@ jobs:
       - name: Restart systemd service
         run: |
           sudo systemctl restart swiftly-bot.service
-          sudo systemctl restart webapi.service
