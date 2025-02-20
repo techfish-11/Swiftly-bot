@@ -46,10 +46,14 @@ async def get_servers():
             if not cursor.fetchone():
                 raise HTTPException(status_code=500, detail="Servers table does not exist")
             
-            # データを取得
+            # データを取得（rank_pointsが同じ場合は最後のup時間が新しい順、NULLは最後に）
             cursor.execute('''
                 SELECT * FROM servers 
-                ORDER BY rank_points DESC, registered_at DESC
+                ORDER BY 
+                    rank_points DESC,
+                    CASE WHEN last_up_time IS NULL THEN 0 ELSE 1 END DESC,
+                    last_up_time DESC,
+                    registered_at DESC
             ''')
             servers = cursor.fetchall()
             
