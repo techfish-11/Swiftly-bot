@@ -42,15 +42,23 @@ async def on_ready():
     # 初回のユーザー数を集計して書き込み
     await update_user_count()
 
+    # JSONファイルからユーザー数を読み込み、ステータスを更新
+    with open("user_count.json", "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+        user_count = data.get("total_users", 0)
+        await bot.change_presence(activity=discord.Game(name=f"{user_count}人のユーザー数"))
+
 
 @bot.event
 async def on_member_join(member):
     await update_user_count()
+    await update_bot_status()
 
 
 @bot.event
 async def on_member_remove(member):
     await update_user_count()
+    await update_bot_status()
 
 
 async def update_user_count():
@@ -65,6 +73,14 @@ async def update_user_count():
     # JSONファイルに書き込み
     with open("user_count.json", "w", encoding="utf-8") as fp:
         json.dump({"total_users": user_count}, fp, ensure_ascii=False, indent=4)
+
+
+async def update_bot_status():
+    # JSONファイルからユーザー数を読み込み、ステータスを更新
+    with open("user_count.json", "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+        user_count = data.get("total_users", 0)
+        await bot.change_presence(activity=discord.Game(name=f"{user_count}人のユーザー数"))
 
 
 @bot.event
