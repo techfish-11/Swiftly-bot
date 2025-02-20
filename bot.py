@@ -2,6 +2,7 @@
 # Developed by: TechFish_1
 import asyncio
 import os
+import json
 
 import dotenv
 import discord
@@ -38,11 +39,39 @@ async def on_ready():
     # アプリコマンドを同期（slashコマンド等）
     await bot.tree.sync()
 
+    # 初回のユーザー数を集計して書き込み
+    await update_user_count()
+
+
+@bot.event
+async def on_member_join(member):
+    await update_user_count()
+
+
+@bot.event
+async def on_member_remove(member):
+    await update_user_count()
+
+
+async def update_user_count():
+    # サーバー参加者を集計（重複ユーザーは1度のみカウント）
+    unique_users = set()
+    for guild in bot.guilds:
+        for member in guild.members:
+            unique_users.add(member.id)
+    user_count = len(unique_users)
+    print(f"Unique user count: {user_count}")
+
+    # JSONファイルに書き込み
+    with open("user_count.json", "w", encoding="utf-8") as fp:
+        json.dump({"total_users": user_count}, fp, ensure_ascii=False, indent=4)
+
 
 @bot.event
 async def on_command_error(ctx, error):
     print(f"Error: {error}")
     await ctx.send("エラーが発生しました")
+
 
 if __name__ == "__main__":
     asyncio.run(bot.start(TOKEN))

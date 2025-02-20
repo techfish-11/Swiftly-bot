@@ -6,11 +6,13 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 import os
+import json
 
 app = FastAPI(title="Server Board API")
 
 # データベースファイルのパスを絶対パスで設定
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'server_board.db')
+USER_COUNT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user_count.json')
 
 # CORSミドルウェアの設定
 app.add_middleware(
@@ -105,6 +107,20 @@ async def get_server(server_id: int):
             return dict(server)
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+@app.get("/api/users")
+async def get_total_users():
+    if not os.path.exists(USER_COUNT_PATH):
+        raise HTTPException(status_code=500, detail=f"User count file not found at {USER_COUNT_PATH}")
+    
+    try:
+        with open(USER_COUNT_PATH, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return {"total_users": data.get("total_users", 0)}
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Error reading user count file: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
