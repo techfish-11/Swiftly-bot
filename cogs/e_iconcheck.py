@@ -67,6 +67,7 @@ class EnableAnticheatView(View):
 
             enable_anticheat(self.guild_id)
             await interaction.followup.edit_message(
+                message_id=interaction.message.id,
                 content="荒らし対策を有効にしました。",
                 embed=None,
                 view=None
