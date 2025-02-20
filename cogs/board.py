@@ -173,7 +173,7 @@ class ServerBoard(commands.Cog):
     @app_commands.command(name="up", description="サーバーの表示順位を上げます")
     async def up_rank(self, interaction: discord.Interaction):
         try:
-            await interaction.response.defer(ephemeral=True)
+            await interaction.response.defer(ephemeral=False)
             try:
                 with sqlite3.connect('server_board.db') as conn:
                     cursor = conn.cursor()
@@ -183,7 +183,7 @@ class ServerBoard(commands.Cog):
                     result = cursor.fetchone()
                     
                     if not result:
-                        await interaction.followup.send("このサーバーは登録されていません。", ephemeral=True)
+                        await interaction.followup.send("このサーバーは登録されていません。", ephemeral=False)
                         return
 
                     last_up_time = result[0]
@@ -211,12 +211,12 @@ class ServerBoard(commands.Cog):
                     await interaction.followup.send("サーバーの表示順位を上げました！", ephemeral=False)
                     
             except sqlite3.Error as e:
-                await interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
+                await interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=False)
                 return
                 
         except Exception as e:
             try:
-                await interaction.followup.send(f"予期せぬエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
+                await interaction.followup.send(f"予期せぬエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=False)
             except:
                 pass
 
