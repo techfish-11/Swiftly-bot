@@ -76,7 +76,7 @@ class IconCheck(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="anticheat_enable", description="荒らし対策を有効にします")
+    @discord.app_commands.command(name="antiraid_enable", description="荒らし対策を有効にします")
     async def anticheat_enable(self, interaction: discord.Interaction):
         guild = interaction.guild
         if guild is None:
@@ -108,7 +108,7 @@ class IconCheck(commands.Cog):
         view = ConfirmEnableView(guild.id)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @discord.app_commands.command(name="anticheat_disable", description="荒らし対策を無効にします")
+    @discord.app_commands.command(name="antiraid_disable", description="荒らし対策を無効にします")
     async def anticheat_disable(self, interaction: discord.Interaction):
         guild = interaction.guild
         if guild is None:
