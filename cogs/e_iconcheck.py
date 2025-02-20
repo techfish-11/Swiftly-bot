@@ -47,7 +47,8 @@ class EnableAnticheatView(View):
 
     @discord.ui.button(label="登録", style=discord.ButtonStyle.green, custom_id="confirm_enable")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(thinking=True)
+        # Defer the response so we have time to process
+        await interaction.response.defer(ephemeral=True)
         try:
             guild = interaction.guild
             if guild is None:
@@ -66,12 +67,8 @@ class EnableAnticheatView(View):
                 return
 
             enable_anticheat(self.guild_id)
-            await interaction.followup.edit_message(
-                message_id=interaction.message.id,
-                content="荒らし対策を有効にしました。",
-                embed=None,
-                view=None
-            )
+            # Edit the original deferred response so the user sees the update
+            await interaction.edit_original_response(content="荒らし対策を有効にしました。")
             self.stop()
         except Exception as e:
             await interaction.followup.send(f"インタラクションに失敗しました: {str(e)}", ephemeral=True)
