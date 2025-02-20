@@ -40,7 +40,7 @@ def disable_anticheat(guild_id: int):
     conn.commit()
     conn.close()
 
-class ConfirmEnableView(View):
+class EnableAnticheatView(View):
     def __init__(self, guild_id: int):
         super().__init__(timeout=60)  # expires after 60 seconds
         self.guild_id = guild_id
@@ -118,7 +118,7 @@ class IconCheck(commands.Cog):
                          "登録ボタンを押すことで、荒らし対策を有効にします。"),
             color=discord.Color.blue()
         )
-        view = ConfirmEnableView(guild.id)
+        view = EnableAnticheatView(guild.id)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @discord.app_commands.command(name="antiraid_disable", description="荒らし対策を無効にします")
