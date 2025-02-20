@@ -102,7 +102,7 @@ class ProphetGrowth(commands.Cog):
         return next((row["ds"] for _, row in forecast.iterrows() if row["yhat"] >= target), None)
 
     async def generate_plot(self, join_dates, forecast, target, found_date):
-        await asyncio.to_thread(self._generate_plot, join_dates, forecast, target, found_date)
+        return await asyncio.to_thread(self._generate_plot, join_dates, forecast, target, found_date)
 
     def _generate_plot(self, join_dates, forecast, target, found_date):
         plt.figure(figsize=(12, 8))
