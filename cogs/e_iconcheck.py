@@ -47,32 +47,33 @@ class ConfirmEnableView(View):
 
     @discord.ui.button(label="登録", style=discord.ButtonStyle.green, custom_id="confirm_enable")
     async def confirm(self, button: Button, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True)
         try:
             guild = interaction.guild
             if guild is None:
-                await interaction.response.send_message("このボタンはサーバー内でのみ使用できます。", ephemeral=True)
+                await interaction.followup.send("このボタンはサーバー内でのみ使用できます。", ephemeral=True)
                 self.stop()
                 return
 
             if not interaction.channel.permissions_for(guild.me).manage_messages:
-                await interaction.response.send_message("Botにメッセージ削除の権限がありません。登録できません。", ephemeral=True)
+                await interaction.followup.send("Botにメッセージ削除の権限がありません。登録できません。", ephemeral=True)
                 self.stop()
                 return
 
             if is_anticheat_enabled(self.guild_id):
-                await interaction.response.send_message("すでに有効です。", ephemeral=True)
+                await interaction.followup.send("すでに有効です。", ephemeral=True)
                 self.stop()
                 return
 
             enable_anticheat(self.guild_id)
-            await interaction.response.edit_message(
+            await interaction.followup.edit_message(
                 content="荒らし対策を有効にしました。",
                 embed=None,
                 view=None
             )
             self.stop()
         except Exception as e:
-            await interaction.response.send_message(f"インタラクションに失敗しました: {str(e)}", ephemeral=True)
+            await interaction.followup.send(f"インタラクションに失敗しました: {str(e)}", ephemeral=True)
             self.stop()
 
 class IconCheck(commands.Cog):
