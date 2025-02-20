@@ -7,7 +7,7 @@ class ImageGen(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.app_commands.command(name="imagegen", description="Generates an image based on the given prompt")
+    @discord.app_commands.command(name="imagegen", description="与えられたプロンプトに基づいて画像を生成します")
     async def imagegen(self, interaction: discord.Interaction, prompt: str) -> None:
         await interaction.response.defer(thinking=True)
         async with aiohttp.ClientSession() as session:
