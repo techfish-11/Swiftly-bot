@@ -47,29 +47,33 @@ class ConfirmEnableView(View):
 
     @discord.ui.button(label="登録", style=discord.ButtonStyle.green, custom_id="confirm_enable")
     async def confirm(self, button: Button, interaction: discord.Interaction):
-        guild = interaction.guild
-        if guild is None:
-            await interaction.response.send_message("このボタンはサーバー内でのみ使用できます。", ephemeral=True)
-            self.stop()
-            return
+        try:
+            guild = interaction.guild
+            if guild is None:
+                await interaction.response.send_message("このボタンはサーバー内でのみ使用できます。", ephemeral=True)
+                self.stop()
+                return
 
-        if not interaction.channel.permissions_for(guild.me).manage_messages:
-            await interaction.response.send_message("Botにメッセージ削除の権限がありません。登録できません。", ephemeral=True)
-            self.stop()
-            return
+            if not interaction.channel.permissions_for(guild.me).manage_messages:
+                await interaction.response.send_message("Botにメッセージ削除の権限がありません。登録できません。", ephemeral=True)
+                self.stop()
+                return
 
-        if is_anticheat_enabled(self.guild_id):
-            await interaction.response.send_message("すでに有効です。", ephemeral=True)
-            self.stop()
-            return
+            if is_anticheat_enabled(self.guild_id):
+                await interaction.response.send_message("すでに有効です。", ephemeral=True)
+                self.stop()
+                return
 
-        enable_anticheat(self.guild_id)
-        await interaction.response.edit_message(
-            content="荒らし対策を有効にしました。",
-            embed=None,
-            view=None
-        )
-        self.stop()
+            enable_anticheat(self.guild_id)
+            await interaction.response.edit_message(
+                content="荒らし対策を有効にしました。",
+                embed=None,
+                view=None
+            )
+            self.stop()
+        except Exception as e:
+            await interaction.response.send_message(f"インタラクションに失敗しました: {str(e)}", ephemeral=True)
+            self.stop()
 
 class IconCheck(commands.Cog):
     def __init__(self, bot):
