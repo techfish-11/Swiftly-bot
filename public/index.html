@@ -44,7 +44,7 @@
                     </div>
                     <p class="card-text description"></p>
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <small class="text-muted">ランクポイント: <span class="rank-points"></span></small>
+                        <small class="text-muted last-up-time"></small>
                         <small class="text-muted registered-at"></small>
                     </div>
                     <div class="text-center">
@@ -80,8 +80,13 @@
                     clone.querySelector('.description').textContent = 
                         server.description || 'このサーバーはまだ説明文を設定していません。';
 
-                    // ランクポイントの設定
-                    clone.querySelector('.rank-points').textContent = server.rank_points;
+                    // 最後のupからの経過時間の設定
+                    const lastUpTimeElement = clone.querySelector('.last-up-time');
+                    if (server.time_since_last_up) {
+                        lastUpTimeElement.textContent = `最後のup: ${server.time_since_last_up}`;
+                    } else {
+                        lastUpTimeElement.textContent = 'まだupされていません';
+                    }
 
                     // 登録日時の設定
                     const registeredDate = new Date(server.registered_at);

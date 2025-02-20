@@ -26,10 +26,10 @@ class Server(BaseModel):
     server_name: str
     icon_url: Optional[str] = None
     description: Optional[str] = None
-    rank_points: int
     last_up_time: Optional[datetime] = None
     registered_at: datetime
     invite_url: Optional[str] = None
+    time_since_last_up: Optional[str] = None  # 最後のupからの経過時間を文字列で保持
 
 @app.get("/api/servers", response_model=List[Server])
 async def get_servers():
@@ -41,16 +41,13 @@ async def get_servers():
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            # テーブルが存在するか確認
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='servers'")
             if not cursor.fetchone():
                 raise HTTPException(status_code=500, detail="Servers table does not exist")
             
-            # データを取得（rank_pointsが同じ場合は最後のup時間が新しい順、NULLは最後に）
             cursor.execute('''
                 SELECT * FROM servers 
                 ORDER BY 
-                    rank_points DESC,
                     CASE WHEN last_up_time IS NULL THEN 0 ELSE 1 END DESC,
                     last_up_time DESC,
                     registered_at DESC
@@ -59,8 +56,35 @@ async def get_servers():
             
             if not servers:
                 return []
+
+            current_time = datetime.now()
+            result = []
+            
+            for server in servers:
+                server_dict = dict(server)
+                if server_dict['last_up_time']:
+                    last_up = datetime.fromisoformat(server_dict['last_up_time'])
+                    delta = current_time - last_up
+                    
+                    if delta.days > 0:
+                        time_str = f"{delta.days}日前"
+                    elif delta.seconds >= 3600:
+                        hours = delta.seconds // 3600
+                        time_str = f"{hours}時間前"
+                    elif delta.seconds >= 60:
+                        minutes = delta.seconds // 60
+                        time_str = f"{minutes}分前"
+                    else:
+                        time_str = f"{delta.seconds}秒前"
+                    
+                    server_dict['time_since_last_up'] = time_str
+                else:
+                    server_dict['time_since_last_up'] = None
                 
-            return [dict(server) for server in servers]
+                result.append(server_dict)
+                
+            return result
+            
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     except Exception as e:
