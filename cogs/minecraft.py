@@ -12,7 +12,7 @@ class Minecraft(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name='minecraft', description='Get the status of a Minecraft server')
+    @app_commands.command(name='minecraft', description='Minecraft サーバーのステータスを取得する')
     async def minecraft(self, interaction: discord.Interaction, address: str):
         await interaction.response.defer(thinking=True)
         url = f'https://api.mcsrvstat.us/3/{address}'
