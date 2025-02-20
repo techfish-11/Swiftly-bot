@@ -47,7 +47,6 @@ class ConfirmEnableView(View):
 
     @discord.ui.button(label="登録", style=discord.ButtonStyle.green, custom_id="confirm_enable")
     async def confirm(self, button: Button, interaction: discord.Interaction):
-        # チャンネルでBotがメッセージ削除の権限を持っているかチェック
         guild = interaction.guild
         if guild is None:
             await interaction.response.send_message("このボタンはサーバー内でのみ使用できます。", ephemeral=True)
@@ -88,6 +87,16 @@ class IconCheck(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
+        # 管理者権限のチェック
+        if not interaction.user.guild_permissions.administrator:
+            embed = discord.Embed(
+                title="エラー",
+                description="このコマンドはサーバーの管理者のみ実行できます。",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
         if is_anticheat_enabled(guild.id):
             embed = discord.Embed(
                 title="情報",
@@ -97,7 +106,6 @@ class IconCheck(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
-        # 説明と登録ボタン付きのメッセージの送信（権限チェックは登録ボタン押下時に行う）
         embed = discord.Embed(
             title="説明",
             description=("この機能は、デフォルトアバターかつ本日作成されたアカウントによる"
@@ -115,6 +123,16 @@ class IconCheck(commands.Cog):
             embed = discord.Embed(
                 title="エラー",
                 description="このコマンドはサーバー内でのみ使用できます。",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        # 管理者権限のチェック
+        if not interaction.user.guild_permissions.administrator:
+            embed = discord.Embed(
+                title="エラー",
+                description="このコマンドはサーバーの管理者のみ実行できます。",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
