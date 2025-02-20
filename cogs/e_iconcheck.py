@@ -46,7 +46,7 @@ class EnableAnticheatView(View):
         self.guild_id = guild_id
 
     @discord.ui.button(label="登録", style=discord.ButtonStyle.green, custom_id="confirm_enable")
-    async def confirm(self, button: Button, interaction: discord.Interaction):
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(thinking=True)
         try:
             guild = interaction.guild
