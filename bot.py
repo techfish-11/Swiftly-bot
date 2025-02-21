@@ -3,11 +3,13 @@
 import asyncio
 import os
 import json
+import time
 
 import dotenv
 import discord
 from discord.ext import commands
 
+last_status_update = 0
 
 intents = discord.Intents.default()
 intents.members = True
@@ -50,13 +52,13 @@ async def on_ready():
 
 
 @bot.event
-async def on_member_join(member):
+async def on_member_join(_):
     await update_user_count()
     await update_bot_status()
 
 
 @bot.event
-async def on_member_remove(member):
+async def on_member_remove(_):
     await update_user_count()
     await update_bot_status()
 
@@ -71,16 +73,23 @@ async def update_user_count():
     print(f"Unique user count: {user_count}")
 
     # JSONファイルに書き込み
-    with open("user_count.json", "w", encoding="utf-8") as fp:
-        json.dump({"total_users": user_count}, fp, ensure_ascii=False, indent=4)
+    with open("user_count.json", "w", encoding="utf-8") as f:
+        json.dump({"total_users": user_count}, f, ensure_ascii=False, indent=4)
 
 
+# 連続で参加した時に頻繁に更新するとあれなので5秒
 async def update_bot_status():
-    # JSONファイルからユーザー数を読み込み、ステータスを更新
-    with open("user_count.json", "r", encoding="utf-8") as fp:
-        data = json.load(fp)
+    global last_status_update
+    current_time = time.time()
+    if current_time - last_status_update < 5:
+        return
+
+    with open("user_count.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
         user_count = data.get("total_users", 0)
         await bot.change_presence(activity=discord.Game(name=f"{user_count}人のユーザー数"))
+
+    last_status_update = current_time
 
 
 @bot.event
