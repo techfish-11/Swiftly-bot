@@ -37,14 +37,21 @@ log_handler = TimedRotatingFileHandler(f"{log_dir}/logs.log", when="midnight", i
 log_handler.setLevel(logging.DEBUG)
 log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 
+# コマンド実行履歴のログ
+command_log_handler = TimedRotatingFileHandler(f"{log_dir}/commands.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
+command_log_handler.setLevel(logging.INFO)
+command_log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
 # ロガーの設定
 logger = logging.getLogger('bot')
 logger.setLevel(logging.WARNING)
 logger.addHandler(log_handler)
+logger.addHandler(command_log_handler)
 
 # discord ロガーの設定を変更
 logging.getLogger('discord').setLevel(logging.WARNING)
 logging.getLogger('discord').addHandler(log_handler)
+logging.getLogger('discord').addHandler(command_log_handler)
 
 
 @bot.event
@@ -117,12 +124,12 @@ async def update_bot_status():
 
 @bot.event
 async def on_command(ctx):
-    logger.info(f"Command executed: {ctx.command}")
+    logging.getLogger('commands').info(f"Command executed: {ctx.command}")
 
 
 @bot.event
 async def on_command_error(ctx, error):
-    logger.error(f"Error: {error}")
+    logging.getLogger('commands').error(f"Error: {error}")
     await ctx.send("エラーが発生しました")
 
 
