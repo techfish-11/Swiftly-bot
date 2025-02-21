@@ -66,8 +66,7 @@ class LoveCalculator(commands.Cog):
             embed.add_field(name="ユーザー1", value=name1, inline=True)
             embed.add_field(name="ユーザー2", value=name2, inline=True)
             embed.add_field(name="相性結果", value=f"**{name1} → {name2}**\n好感度：{love_score[1]}%\n**{name2} → {name1}**\n好感度：{love_score[2]}%", inline=False)
-            embed.add_field(name="総合相性（好感度平均）",
-                            value=f"{love_score[0]}%", inline=False)
+            embed.add_field(name="総合相性（好感度平均）", value=f"{love_score[0]}%", inline=False)
             embed.add_field(name="メッセージ", value=message, inline=False)
             await interaction.response.send_message(embed=embed)
 
@@ -135,12 +134,12 @@ class LoveCalculator(commands.Cog):
                     damage = math.floor(max(0, turn_atk*(1-(turn_def/100))))
                     hp2 -= damage
                     if crit:
-                        embed.add_field(name=name1+"のターン", value="クリティカルヒット！" + name2+"に"+str(damage)+"のダメージ！残りHP："+str(hp2), inline=False)
+                        embed.add_field(name=f"{name1}のターン", value=f"クリティカルヒット！{name2}に{damage}のダメージ！残りHP：{hp2}", inline=False)
                     else:
-                        embed.add_field(name=name1+"のターン", value=name2+"に" + str(damage)+"のダメージ！残りHP："+str(hp2), inline=False)
+                        embed.add_field(name=f"{name1}のターン", value=f"{name2}に{damage}のダメージ！残りHP：{hp2}", inline=False)
                     if hp2 <= 0:
                         embed.add_field(
-                            name=name1+"の勝利！", value=name1+"は"+str(hp1)+"の体力を残して勝利した！", inline=False)
+                            name=f"{name1}の勝利！", value=f"{name1}は{hp1}の体力を残して勝利した！", inline=False)
                         break
                 else:
                     turn_atk = stats2[1]
@@ -159,16 +158,16 @@ class LoveCalculator(commands.Cog):
                     damage = math.floor(max(0, turn_atk*(1-(turn_def/100))))
                     hp1 -= damage
                     if crit:
-                        embed.add_field(name=name2+"のターン", value="クリティカルヒット！" + name1+"に"+str(damage)+"のダメージ！残りHP："+str(hp1), inline=False)
+                        embed.add_field(name=f"{name2}のターン", value=f"クリティカルヒット！{name1}に{damage}のダメージ！残りHP：{hp1}", inline=False)
                     else:
-                        embed.add_field(name=name2+"のターン", value=name1+"に" + str(damage)+"のダメージ！残りHP："+str(hp1), inline=False)
+                        embed.add_field(name=f"{name2}のターン", value=f"{name1}に{damage}のダメージ！残りHP：{hp1}", inline=False)
                     if hp1 <= 0:
                         embed.add_field(
-                            name=name2+"の勝利！", value=name2+"は"+str(hp2)+"の体力を残して勝利した！", inline=False)
+                            name=f"{name2}の勝利！", value=f"{name2}は{hp2}の体力を残して勝利した！", inline=False)
                         break
                 turn = not turn
             if hp1 > 0 and hp2 > 0:
-                embed.add_field(name="引き分け", value="10ターン以内に戦いが終わらなかった。\n" + name1+"の体力："+str(hp1)+"/n"+name2+"の体力："+str(hp2), inline=False)
+                embed.add_field(name="引き分け", value=f"10ターン以内に戦いが終わらなかった。\n{name1}の体力：{hp1}\n{name2}の体力：{hp2}", inline=False)
             await interaction.response.send_message(embed=embed)
 
     def K7LoveCalc(self, name1: str, name2: str):
@@ -187,8 +186,8 @@ class LoveCalculator(commands.Cog):
         love_score = (user1_to_user2_friend + user2_to_user1_friend) // 2
         if name1 > name2:
             return [love_score, user1_to_user2_friend, user2_to_user1_friend]
-        else:
-            return [love_score, user2_to_user1_friend, user1_to_user2_friend]
+
+        return [love_score, user2_to_user1_friend, user1_to_user2_friend]
 
     def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
         if user1_to_user2 - user2_to_user1 > 70:
@@ -207,8 +206,8 @@ class LoveCalculator(commands.Cog):
             return "まあまあの相性です。🙂"
         elif score > 20:
             return "ちょっと微妙かも...😕"
-        else:
-            return "残念ながら、相性はあまり良くないようです。😢"
+
+        return "残念ながら、相性はあまり良くないようです。😢"
 
 
 async def setup(bot):
