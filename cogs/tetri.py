@@ -39,7 +39,6 @@ class TetrisGame:
         self.spawn_piece()
 
     def remove_complete_lines(self):
-        # 簡易的なライン消去処理
         new_board = [row for row in self.board if not all(cell == 1 for cell in row)]
         lines_cleared = BOARD_HEIGHT - len(new_board)
         for _ in range(lines_cleared):
@@ -73,12 +72,10 @@ class TetrisGame:
             self.current_piece = (x, y + 1)
             return True
         else:
-            # 下に動けなければ固定する
             self.fix_piece()
             return False
 
     def drop(self):
-        # ブロックを最下段まで落とす
         while self.current_piece and self.can_move(0, 1):
             x, y = self.current_piece
             self.current_piece = (x, y + 1)
@@ -89,7 +86,6 @@ class TetrisGame:
         pass
 
     def render(self) -> str:
-        # ボードの文字列表現を生成
         render_lines = []
         for y in range(BOARD_HEIGHT):
             line = ""
@@ -106,7 +102,7 @@ class TetrisGame:
 
 class TetrisView(discord.ui.View):
     def __init__(self, game: TetrisGame, interaction: discord.Interaction):
-        super().__init__(timeout=120)  # タイムアウトは必要に応じて調整
+        super().__init__(timeout=120)
         self.game = game
         self.interaction = interaction
 
@@ -119,13 +115,13 @@ class TetrisView(discord.ui.View):
         content = None
         if self.game.game_over:
             content = "Game Over!"
-            # 全てのボタンを無効化する
             for child in self.children:
                 child.disabled = True
         await self.interaction.edit_original_response(embed=embed, content=content, view=self)
-    
+
     @discord.ui.button(label="←", style=discord.ButtonStyle.primary)
     async def left(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         if self.game.game_over:
             return
         self.game.move_left()
@@ -133,6 +129,7 @@ class TetrisView(discord.ui.View):
 
     @discord.ui.button(label="→", style=discord.ButtonStyle.primary)
     async def right(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         if self.game.game_over:
             return
         self.game.move_right()
@@ -140,14 +137,15 @@ class TetrisView(discord.ui.View):
 
     @discord.ui.button(label="↓", style=discord.ButtonStyle.primary)
     async def down(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         if self.game.game_over:
             return
-        moved = self.game.move_down()
-        # 自動で一定間隔落下させた場合の処理もここに組み込めます
+        self.game.move_down()  # move_down will fix piece if it can’t move further
         await self.update_message()
 
     @discord.ui.button(label="⏬", style=discord.ButtonStyle.primary)
     async def drop(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         if self.game.game_over:
             return
         self.game.drop()
@@ -155,9 +153,10 @@ class TetrisView(discord.ui.View):
 
     @discord.ui.button(label="↻", style=discord.ButtonStyle.secondary)
     async def rotate_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         if self.game.game_over:
             return
-        self.game.rotate()  # シングルセルなので実質ノップ
+        self.game.rotate()  # No-op for single-cell piece
         await self.update_message()
 
 
@@ -173,30 +172,28 @@ class Tetri(commands.Cog):
             description=game.render(),
             color=discord.Color.blue()
         )
+        # Send the initial response with the view
         await interaction.response.send_message(embed=embed, view=TetrisView(game, interaction))
-        
-        # Optional: 自動落下のコルーチン（ここでは簡易的に実装）
-        async def auto_drop():
+        # Retrieve the message just sent to pass to the auto-drop task
+        msg = await interaction.original_response()
+
+        async def auto_drop(view: TetrisView):
             await asyncio.sleep(3)
-            view: TetrisView = interaction.message.components[0].view  # 設定したviewを取得
             while not game.game_over:
                 await asyncio.sleep(3)
                 if game.current_piece and game.can_move(0, 1):
                     game.move_down()
-                    try:
-                        await view.update_message()
-                    except Exception:
-                        break
                 else:
-                    # ブロックが固定されたので更新後、新たなブロックが出現する
-                    try:
-                        await view.update_message()
-                    except Exception:
-                        break
-            # ゲームオーバーの場合、viewは自動でボタンを無効化する
-                
-        # 自動落下タスクをスタート（viewによる更新と競合する可能性があるため要検証）
-        self.bot.loop.create_task(auto_drop())
+                    # In move_down(), the piece is fixed automatically if it can't move
+                    pass
+                try:
+                    await view.update_message()
+                except Exception:
+                    break
+
+        # Start the auto-drop task passing in the view instance
+        view = msg.components[0].view
+        self.bot.loop.create_task(auto_drop(view))
 
 
 async def setup(bot):
