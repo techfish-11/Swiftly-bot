@@ -52,8 +52,8 @@ class TetrisGame:
 
     def spawn_piece(self):
         spawn_x = BOARD_WIDTH // 2
-        # 新しいブロックは上から4マス目に配置（隠し領域を考慮して）
-        spawn_y = HIDDEN_ROWS + 3
+        # 新しいブロックは従来より2マス上（上から2マス目）に配置
+        spawn_y = HIDDEN_ROWS + 1
         type_index = random.randint(0, len(TETRIS_SHAPES) - 1)
         shape = copy.deepcopy(TETRIS_SHAPES[type_index])
         piece = {"x": spawn_x, "y": spawn_y, "shape": shape, "type": type_index}
