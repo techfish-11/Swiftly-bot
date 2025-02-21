@@ -79,8 +79,9 @@ class MemberWelcomeCog(commands.Cog):
         action: str,
         increment: int = None
     ):
+        # このあたりは適宜変更してね
         if not interaction.user.guild_permissions.manage_guild:
-            await interaction.response.send_message("このコマンドを使用するには「サーバーの管理」権限が必要です。", ephemeral=True)
+            await interaction.response.send_message("コマンドを使用するにはサーバーの管理権限が必要だよ", ephemeral=True)
             return
 
         if action.lower() not in ["on", "off"]:
@@ -89,8 +90,9 @@ class MemberWelcomeCog(commands.Cog):
 
         is_enabled = action.lower() == "on"
 
-        if increment is not None and (increment < 5 or increment > 1000):
-            await interaction.response.send_message("5から1000人の間で指定してね", ephemeral=True)
+        # OFFの時もincrementが指定されるかもだけどまぁ気になるならいじろう
+        if increment and (increment < 5 or increment > 1000):
+            await interaction.response.send_message("5～1000人の間で指定してね", ephemeral=True)
             return
 
         self._update_guild_settings(
