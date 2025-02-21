@@ -123,7 +123,7 @@ async def update_bot_status():
 
 
 @bot.event
-async def on_command(ctx):
+async def on_command_completion(ctx):
     logging.getLogger('commands').info(f"Command executed: {ctx.command}")
 
 
