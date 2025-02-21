@@ -1,9 +1,10 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-import sqlite3
 import datetime
+import discord
+import sqlite3
+from discord import app_commands
+from discord.ext import commands
 from typing import Optional
+
 
 class DescriptionModal(discord.ui.Modal, title="サーバー説明文の設定"):
     description = discord.ui.TextInput(
@@ -15,12 +16,12 @@ class DescriptionModal(discord.ui.Modal, title="サーバー説明文の設定")
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        with sqlite3.connect('server_board.db') as conn:
+        with sqlite3.connect("server_board.db") as conn:
             cursor = conn.cursor()
-            cursor.execute('UPDATE servers SET description = ? WHERE server_id = ?',
-                         (str(self.description), interaction.guild.id))
+            cursor.execute("UPDATE servers SET description = ? WHERE server_id = ?", (str(self.description), interaction.guild.id))
             conn.commit()
         await interaction.response.send_message("サーバーの説明文を更新しました！", ephemeral=True)
+
 
 class ServerBoard(commands.Cog):
     def __init__(self, bot):
@@ -28,10 +29,10 @@ class ServerBoard(commands.Cog):
         self.setup_database()
 
     def setup_database(self):
-        with sqlite3.connect('server_board.db') as conn:
+        with sqlite3.connect("server_board.db") as conn:
             cursor = conn.cursor()
             # テーブルが存在しない場合は作成
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS servers (
                     server_id INTEGER PRIMARY KEY,
                     server_name TEXT NOT NULL,
@@ -42,16 +43,16 @@ class ServerBoard(commands.Cog):
                     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     invite_url TEXT
                 )
-            ''')
+            """)
 
             # invite_url カラムが存在するか確認
             cursor.execute("PRAGMA table_info(servers)")
             columns = [column[1] for column in cursor.fetchall()]
-            
+
             # invite_url カラムがなければ追加
-            if 'invite_url' not in columns:
-                cursor.execute('ALTER TABLE servers ADD COLUMN invite_url TEXT')
-            
+            if "invite_url" not in columns:
+                cursor.execute("ALTER TABLE servers ADD COLUMN invite_url TEXT")
+
             conn.commit()
 
     @app_commands.command(name="register", description="サーバーを掲示板に登録します")
@@ -60,14 +61,14 @@ class ServerBoard(commands.Cog):
         try:
             # まず応答を遅延させる
             await interaction.response.defer(ephemeral=True)
-            
+
             guild = interaction.guild
-            
+
             # データベース接続のエラーハンドリング
             try:
-                with sqlite3.connect('server_board.db') as conn:
+                with sqlite3.connect("server_board.db") as conn:
                     cursor = conn.cursor()
-                    cursor.execute('SELECT * FROM servers WHERE server_id = ?', (guild.id,))
+                    cursor.execute("SELECT * FROM servers WHERE server_id = ?", (guild.id,))
                     if cursor.fetchone():
                         await interaction.followup.send("このサーバーは既に登録されています。", ephemeral=True)
                         return
@@ -118,17 +119,17 @@ class ServerBoard(commands.Cog):
                     try:
                         await button_interaction.response.defer(ephemeral=True)
                         try:
-                            with sqlite3.connect('server_board.db') as conn:
+                            with sqlite3.connect("server_board.db") as conn:
                                 cursor = conn.cursor()
-                                cursor.execute('''
+                                cursor.execute("""
                                     INSERT INTO servers (server_id, server_name, icon_url, invite_url)
                                     VALUES (?, ?, ?, ?)
-                                ''', (guild.id, guild.name, guild.icon.url if guild.icon else None, invite.url))
+                                """, (guild.id, guild.name, guild.icon.url if guild.icon else None, invite.url))
                                 conn.commit()
                         except sqlite3.Error as e:
                             await button_interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
                             return
-                        
+
                         await button_interaction.followup.send("サーバーを登録しました！", ephemeral=True)
                         try:
                             await button_interaction.message.delete()
@@ -145,7 +146,7 @@ class ServerBoard(commands.Cog):
                             await invite.delete()  # キャンセル時は作成した招待も削除
                         except:
                             pass  # 招待の削除に失敗しても続行
-                        
+
                         await button_interaction.followup.send("登録をキャンセルしました。", ephemeral=True)
                         try:
                             await button_interaction.message.delete()
@@ -175,20 +176,21 @@ class ServerBoard(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=False)
             try:
-                with sqlite3.connect('server_board.db') as conn:
+                with sqlite3.connect("server_board.db") as conn:
                     cursor = conn.cursor()
-                    
+
                     # 最後のup実行時刻を確認
-                    cursor.execute('SELECT last_up_time FROM servers WHERE server_id = ?', (interaction.guild.id,))
+                    cursor.execute(
+                        "SELECT last_up_time FROM servers WHERE server_id = ?", (interaction.guild.id,))
                     result = cursor.fetchone()
-                    
+
                     if not result:
                         await interaction.followup.send("このサーバーは登録されていません。", ephemeral=False)
                         return
 
                     last_up_time = result[0]
                     current_time = datetime.datetime.now()
-                    
+
                     if last_up_time:
                         last_up = datetime.datetime.fromisoformat(last_up_time)
                         if (current_time - last_up).total_seconds() < 7200:  # 2時間
@@ -200,20 +202,20 @@ class ServerBoard(commands.Cog):
                             return
 
                     # ポイントを更新
-                    cursor.execute('''
+                    cursor.execute("""
                         UPDATE servers
                         SET rank_points = rank_points + 1,
                             last_up_time = ?
                         WHERE server_id = ?
-                    ''', (current_time.isoformat(), interaction.guild.id))
+                    """, (current_time.isoformat(), interaction.guild.id))
                     conn.commit()
 
                     await interaction.followup.send("サーバーの表示順位を上げました！", ephemeral=False)
-                    
+
             except sqlite3.Error as e:
                 await interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=False)
                 return
-                
+
         except Exception as e:
             try:
                 await interaction.followup.send(f"予期せぬエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=False)
@@ -226,11 +228,11 @@ class ServerBoard(commands.Cog):
         try:
             # サーバーが登録されているか確認
             try:
-                with sqlite3.connect('server_board.db') as conn:
+                with sqlite3.connect("server_board.db") as conn:
                     cursor = conn.cursor()
-                    cursor.execute('SELECT description FROM servers WHERE server_id = ?', (interaction.guild.id,))
+                    cursor.execute("SELECT description FROM servers WHERE server_id = ?", (interaction.guild.id,))
                     result = cursor.fetchone()
-                    
+
                     if not result:
                         await interaction.response.send_message("このサーバーは登録されていません。先に/registerコマンドで登録してください。", ephemeral=True)
                         return
@@ -239,7 +241,7 @@ class ServerBoard(commands.Cog):
                 modal = DescriptionModal()
                 if result[0]:  # 既存の説明文があれば、それをデフォルト値として設定
                     modal.description.default = result[0]
-                    
+
                 await interaction.response.send_modal(modal)
 
             except sqlite3.Error as e:
@@ -271,24 +273,24 @@ class ServerBoard(commands.Cog):
                     try:
                         await button_interaction.response.defer(ephemeral=True)
                         try:
-                            with sqlite3.connect('server_board.db') as conn:
+                            with sqlite3.connect("server_board.db") as conn:
                                 cursor = conn.cursor()
-                                cursor.execute('DELETE FROM servers WHERE server_id = ?', (interaction.guild.id,))
+                                cursor.execute("DELETE FROM servers WHERE server_id = ?", (interaction.guild.id,))
                                 if cursor.rowcount > 0:
                                     conn.commit()
                                     await button_interaction.followup.send("サーバーの登録を削除しました。", ephemeral=True)
                                 else:
                                     await button_interaction.followup.send("このサーバーは登録されていません。", ephemeral=True)
-                                
+
                                 try:
                                     await button_interaction.message.delete()
                                 except:
                                     pass
-                                    
+
                         except sqlite3.Error as e:
                             await button_interaction.followup.send(f"データベースエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
                             return
-                            
+
                     except Exception as e:
                         await button_interaction.followup.send(f"予期せぬエラーが発生しました。\nエラー: {str(e)}", ephemeral=True)
 
@@ -312,6 +314,7 @@ class ServerBoard(commands.Cog):
                 await interaction.response.send_message(f"予期せぬエラーが発生しました。時間をおいて再度お試しください。\nエラー: {str(e)}", ephemeral=True)
             except:
                 pass
+
 
 async def setup(bot):
     await bot.add_cog(ServerBoard(bot))

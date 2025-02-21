@@ -25,7 +25,7 @@
         }
 
         body {
-            font-family: 'Noto Sans JP', sans-serif;
+            font-family: "Noto Sans JP", sans-serif;
             background: var(--secondary-color);
             color: var(--text-light);
             line-height: 1.6;
@@ -45,7 +45,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 20% 20%, rgba(114, 137, 218, 0.15) 0%, transparent 40%),
                 radial-gradient(circle at 80% 80%, rgba(0, 184, 212, 0.15) 0%, transparent 40%);
             z-index: -1;
@@ -221,49 +221,48 @@
     <script>
         async function fetchServers() {
             try {
-                const response = await fetch('https://sw.sakana11.org/api/servers');
+                const response = await fetch("https://sw.sakana11.org/api/servers");
                 const servers = await response.json();
-                const serverList = document.getElementById('server-list');
-                const template = document.getElementById('server-card-template');
+                const serverList = document.getElementById("server-list");
+                const template = document.getElementById("server-card-template");
 
-                serverList.innerHTML = '';
+                serverList.innerHTML = "";
 
                 servers.forEach(server => {
                     const clone = template.content.cloneNode(true);
-                    
-                    const icon = clone.querySelector('.server-icon');
-                    icon.src = server.icon_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                    const icon = clone.querySelector(".server-icon");
+                    icon.src = server.icon_url || "https://cdn.discordapp.com/embed/avatars/0.png";
                     icon.alt = `${server.server_name} icon`;
 
-                    clone.querySelector('.server-name').textContent = server.server_name;
-                    clone.querySelector('.server-description').textContent = 
-                        server.description || 'このサーバーはまだ説明文を設定していません。';
+                    clone.querySelector(".server-name").textContent = server.server_name;
+                    clone.querySelector(".server-description").textContent =
+                        server.description || "このサーバーはまだ説明文を設定していません。";
 
-                    const lastUpTimeElement = clone.querySelector('.last-up-time');
+                    const lastUpTimeElement = clone.querySelector(".last-up-time");
                     if (server.time_since_last_up) {
                         lastUpTimeElement.innerHTML = `<i class="fas fa-clock"></i> ${server.time_since_last_up}`;
                     } else {
-                        lastUpTimeElement.innerHTML = '<i class="fas fa-clock"></i> まだupされていません';
+                        lastUpTimeElement.innerHTML = "<i class='fas fa-clock'></i> まだupされていません";
                     }
 
                     const registeredDate = new Date(server.registered_at);
-                    clone.querySelector('.registered-at').innerHTML = 
-                        `<i class="fas fa-calendar"></i> ${registeredDate.toLocaleDateString('ja-JP')}`;
+                    clone.querySelector(".registered-at").innerHTML =  `<i class="fas fa-calendar"></i> ${registeredDate.toLocaleDateString("ja-JP")}`;
 
-                    const joinButton = clone.querySelector('.join-button');
+                    const joinButton = clone.querySelector(".join-button");
                     if (server.invite_url) {
                         joinButton.href = server.invite_url;
                     } else {
-                        joinButton.classList.add('disabled');
-                        joinButton.style.opacity = '0.5';
-                        joinButton.innerHTML = '<i class="fas fa-ban"></i> 招待リンクがありません';
+                        joinButton.classList.add("disabled");
+                        joinButton.style.opacity = "0.5";
+                        joinButton.innerHTML = "<i class='fas fa-ban'></i> 招待リンクがありません";
                     }
 
                     serverList.appendChild(clone);
                 });
             } catch (error) {
-                console.error('Error fetching servers:', error);
-                document.getElementById('server-list').innerHTML = `
+                console.error("Error fetching servers:", error);
+                document.getElementById("server-list").innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center;">
                         <div style="padding: 2rem; background: rgba(255,0,0,0.1); border-radius: 8px;">
                             <i class="fas fa-exclamation-triangle"></i>

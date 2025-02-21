@@ -20,12 +20,12 @@ class Voice(commands.Cog):
 
     def sanitize_message(self, text: str) -> str:
         # Replace any URL with "URL省略"
-        text = re.sub(r'http[s]?://\S+', 'URL省略', text)
+        text = re.sub(r"http[s]?://\S+", "URL省略", text)
         # Replace any user mention with "メンション省略"
-        text = re.sub(r'<@!?[0-9]+>', 'メンション省略', text)
+        text = re.sub(r"<@!?[0-9]+>", "メンション省略", text)
         # Replace role and channel mentions if needed
-        text = re.sub(r'<@&[0-9]+>', 'メンション省略', text)
-        text = re.sub(r'<#[0-9]+>', 'メンション省略', text)
+        text = re.sub(r"<@&[0-9]+>", "メンション省略", text)
+        text = re.sub(r"<#[0-9]+>", "メンション省略", text)
         return text
 
     def limit_message(self, message: str) -> str:

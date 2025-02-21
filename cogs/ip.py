@@ -4,6 +4,7 @@ import aiohttp
 import asyncio
 import json
 
+
 class IP(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -11,7 +12,7 @@ class IP(commands.Cog):
     @discord.app_commands.command(name="ip", description="IP情報を取得します")
     async def ip(self, interaction: discord.Interaction, ip_addr: str) -> None:
         await interaction.response.defer()
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"http://ip-api.com/json/{ip_addr}") as response:
@@ -52,6 +53,7 @@ class IP(commands.Cog):
             await interaction.followup.send("リクエストがタイムアウトしました。", ephemeral=True)
         except Exception as e:
             await interaction.followup.send(f"予期せぬエラーが発生しました: {str(e)}", ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(IP(bot))

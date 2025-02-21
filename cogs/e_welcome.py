@@ -20,13 +20,13 @@ class MemberWelcomeCog(commands.Cog):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS welcome_settings (
             guild_id INTEGER PRIMARY KEY,
             is_enabled INTEGER DEFAULT 0,
             member_increment INTEGER DEFAULT 100
         )
-        ''')
+        """)
 
         conn.commit()
         conn.close()
@@ -130,7 +130,7 @@ class MemberWelcomeCog(commands.Cog):
         if channel is None:
             # 一般チャンネル
             for ch in member.guild.channels:
-                if isinstance(ch, discord.TextChannel) and ch.name in ['general', '一般']:
+                if isinstance(ch, discord.TextChannel) and ch.name in ["general", "一般"]:
                     channel = ch
                     break
 
