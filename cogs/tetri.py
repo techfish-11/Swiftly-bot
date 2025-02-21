@@ -8,6 +8,7 @@ from discord import app_commands
 # 定数設定
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 15
+HIDDEN_ROWS = 2  # 上部に隠し行（見えない領域）として確保
 EMPTY = "⬛"
 
 # 各テトリミノに対応する色（emoji）
@@ -40,22 +41,30 @@ class TetrisGame:
         self.game_over = False
         self.spawn_piece()
 
+    # ボード内のセルが空ならTrue
+    def is_cell_empty(self, x: int, y: int) -> bool:
+        # yがボードの外（上部隠し領域）なら空とみなす
+        if y < 0:
+            return True
+        if not (0 <= x < BOARD_WIDTH and y < BOARD_HEIGHT):
+            return False
+        return self.board[y][x] == 0
+
     def spawn_piece(self):
         spawn_x = BOARD_WIDTH // 2
-        spawn_y = 0
+        # 隠し領域分上に配置
+        spawn_y = -HIDDEN_ROWS
         type_index = random.randint(0, len(TETRIS_SHAPES) - 1)
         shape = copy.deepcopy(TETRIS_SHAPES[type_index])
         piece = {"x": spawn_x, "y": spawn_y, "shape": shape, "type": type_index}
-        # 当たり判定チェック（新規ピースを配置できなければゲームオーバー）
-        if any(not self.is_cell_empty(spawn_x + dx, spawn_y + dy) for (dx, dy) in piece["shape"]):
-            self.game_over = True
-        else:
-            self.current_piece = piece
-
-    def is_cell_empty(self, x: int, y: int) -> bool:
-        if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT):
-            return False
-        return self.board[y][x] == 0
+        # 新規ピースの配置可能判定（visible部分の衝突だけチェック）
+        for (dx, dy) in piece["shape"]:
+            x = spawn_x + dx
+            y = spawn_y + dy
+            if y >= 0 and not self.is_cell_empty(x, y):
+                self.game_over = True
+                return
+        self.current_piece = piece
 
     def current_piece_positions(self):
         if self.current_piece is None:
@@ -67,13 +76,18 @@ class TetrisGame:
     def fix_piece(self):
         if self.current_piece is None:
             return
+        # ゲームオーバー判定：ピースの一部がまだ隠し領域にいる場合、もしくは配置時に衝突している場合
+        for (x, y) in self.current_piece_positions():
+            if y < 0:
+                self.game_over = True
+                break
         # 固定ブロックをボードに設定（type_index+1）
         for (x, y) in self.current_piece_positions():
             if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
                 self.board[y][x] = self.current_piece["type"] + 1
         self.current_piece = None
         self.remove_complete_lines()
-        # ゲームオーバー判定：一番上の行にブロックが存在するかどうか
+        # visible top rowはボードの0行目
         if any(cell != 0 for cell in self.board[0]):
             self.game_over = True
         else:
@@ -95,9 +109,9 @@ class TetrisGame:
         for (offset_x, offset_y) in shape:
             x = new_x + offset_x
             y = new_y + offset_y
-            if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT):
+            if y >= 0 and not (0 <= x < BOARD_WIDTH and y < BOARD_HEIGHT):
                 return False
-            if self.board[y][x] != 0:
+            if y >= 0 and self.board[y][x] != 0:
                 return False
         return True
 
@@ -138,19 +152,20 @@ class TetrisGame:
             self.current_piece["shape"] = adjusted_shape
 
     def render(self) -> str:
-        display = [[EMPTY for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
-        # 固定ブロックの描画（boardの値 > 0 のとき対応する色を表示）
-        for y in range(BOARD_HEIGHT):
+        # 描画はvisibleな部分のみ（隠し領域は表示しない）
+        display = [[EMPTY for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT - HIDDEN_ROWS)]
+        # 固定ブロックの描画
+        for y in range(HIDDEN_ROWS, BOARD_HEIGHT):
             for x in range(BOARD_WIDTH):
                 if self.board[y][x] != 0:
                     color_index = self.board[y][x] - 1
-                    display[y][x] = COLOR_MAP[color_index]
+                    display[y - HIDDEN_ROWS][x] = COLOR_MAP[color_index]
         # 落下中のブロックの描画
         if self.current_piece:
             piece_color = COLOR_MAP[self.current_piece["type"]]
             for (x, y) in self.current_piece_positions():
-                if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
-                    display[y][x] = piece_color
+                if y >= HIDDEN_ROWS and 0 <= x < BOARD_WIDTH and y < BOARD_HEIGHT:
+                    display[y - HIDDEN_ROWS][x] = piece_color
         return "\n".join("".join(row) for row in display)
 
 class TetrisView(discord.ui.View):
@@ -232,7 +247,7 @@ class Tetri(commands.Cog):
         )
         view = TetrisView(game, interaction)
         await interaction.response.send_message(embed=embed, view=view)
-        
+
         async def auto_drop(view: TetrisView):
             await asyncio.sleep(3)
             while not game.game_over:
@@ -240,7 +255,7 @@ class Tetri(commands.Cog):
                 if game.current_piece and game.can_move(0, 1):
                     game.move_down()
                 await view.update_message()
-        
+
         self.bot.loop.create_task(auto_drop(view))
 
 async def setup(bot):
