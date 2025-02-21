@@ -8,6 +8,9 @@ import time
 import dotenv
 import discord
 from discord.ext import commands
+import logging
+
+logging.getLogger('discord').setLevel(logging.WARNING)
 
 last_status_update = 0
 
