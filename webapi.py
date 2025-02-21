@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class Server(BaseModel):
     server_id: int
     server_name: str
@@ -33,20 +34,21 @@ class Server(BaseModel):
     invite_url: Optional[str] = None
     time_since_last_up: Optional[str] = None  # 最後のupからの経過時間を文字列で保持
 
+
 @app.get("/api/servers", response_model=List[Server])
 async def get_servers():
     if not os.path.exists(DB_PATH):
         raise HTTPException(status_code=500, detail=f"Database file not found at {DB_PATH}")
-    
+
     try:
         with sqlite3.connect(DB_PATH) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            
+
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='servers'")
             if not cursor.fetchone():
                 raise HTTPException(status_code=500, detail="Servers table does not exist")
-            
+
             cursor.execute('''
                 SELECT * FROM servers 
                 ORDER BY 
@@ -55,19 +57,20 @@ async def get_servers():
                     registered_at DESC
             ''')
             servers = cursor.fetchall()
-            
+
             if not servers:
                 return []
 
             current_time = datetime.now()
             result = []
-            
+
             for server in servers:
                 server_dict = dict(server)
                 if server_dict['last_up_time']:
-                    last_up = datetime.fromisoformat(server_dict['last_up_time'])
+                    last_up = datetime.fromisoformat(
+                        server_dict['last_up_time'])
                     delta = current_time - last_up
-                    
+
                     if delta.days > 0:
                         time_str = f"{delta.days}日前"
                     elif delta.seconds >= 3600:
@@ -78,19 +81,20 @@ async def get_servers():
                         time_str = f"{minutes}分前"
                     else:
                         time_str = f"{delta.seconds}秒前"
-                    
+
                     server_dict['time_since_last_up'] = time_str
                 else:
                     server_dict['time_since_last_up'] = None
-                
+
                 result.append(server_dict)
-                
+
             return result
-            
+
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
 
 @app.get("/api/servers/{server_id}", response_model=Server)
 async def get_server(server_id: int):
@@ -100,21 +104,22 @@ async def get_server(server_id: int):
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM servers WHERE server_id = ?', (server_id,))
             server = cursor.fetchone()
-            
+
             if server is None:
                 raise HTTPException(status_code=404, detail="Server not found")
-                
+
             return dict(server)
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
+
 @app.get("/api/users")
 async def get_total_users():
     if not os.path.exists(USER_COUNT_PATH):
         raise HTTPException(status_code=500, detail=f"User count file not found at {USER_COUNT_PATH}")
-    
+
     try:
         with open(USER_COUNT_PATH, 'r', encoding='utf-8') as file:
             data = json.load(file)
