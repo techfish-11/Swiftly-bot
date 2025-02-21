@@ -1,7 +1,7 @@
+import logging
+import aiohttp
 import discord
 from discord import app_commands
-import aiohttp
-import logging
 from discord.ext import commands
 
 # Set up logging
@@ -33,7 +33,7 @@ class Minecraft(commands.Cog):
                         embed.add_field(name="IP", value=data.get("ip", "N/A"), inline=False)
                         embed.add_field(name="Port", value=data.get("port", "N/A"), inline=False)
                         embed.add_field(name="Version", value=data.get("version", "N/A"), inline=False)
-                        embed.add_field(name="Players Online", value=f"{data["players"]["online"]}/{data["players"]["max"]}", inline=False)
+                        embed.add_field(name="Players Online", value=f"{data['players']['online']}/{data['players']['max']}", inline=False)
                         if "hostname" in data:
                             embed.add_field(name="Hostname", value=data["hostname"], inline=False)
                         if "motd" in data:

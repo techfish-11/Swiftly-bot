@@ -1,5 +1,5 @@
-import discord
 from discord.ext import commands
+import discord
 import whois
 
 class Whois(commands.Cog):
