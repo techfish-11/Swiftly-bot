@@ -46,7 +46,7 @@ class TetrisGame:
         type_index = random.randint(0, len(TETRIS_SHAPES) - 1)
         shape = copy.deepcopy(TETRIS_SHAPES[type_index])
         piece = {"x": spawn_x, "y": spawn_y, "shape": shape, "type": type_index}
-        # 当たり判定チェック
+        # 当たり判定チェック（新規ピースを配置できなければゲームオーバー）
         if any(not self.is_cell_empty(spawn_x + dx, spawn_y + dy) for (dx, dy) in piece["shape"]):
             self.game_over = True
         else:
@@ -67,13 +67,17 @@ class TetrisGame:
     def fix_piece(self):
         if self.current_piece is None:
             return
-        # 固定ブロックはテトリミノの種類に応じた値（type_index+1）を保存
+        # 固定ブロックをボードに設定（type_index+1）
         for (x, y) in self.current_piece_positions():
             if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
                 self.board[y][x] = self.current_piece["type"] + 1
         self.current_piece = None
         self.remove_complete_lines()
-        self.spawn_piece()
+        # ゲームオーバー判定：一番上の行にブロックが存在するかどうか
+        if any(cell != 0 for cell in self.board[0]):
+            self.game_over = True
+        else:
+            self.spawn_piece()
 
     def remove_complete_lines(self):
         new_board = [row for row in self.board if not all(cell != 0 for cell in row)]
