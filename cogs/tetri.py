@@ -130,12 +130,18 @@ class TetrisGame:
                 display[y][x] = FALLING
         return "\n".join("".join(row) for row in display)
 
-
 class TetrisView(discord.ui.View):
     def __init__(self, game: TetrisGame, interaction: discord.Interaction):
         super().__init__(timeout=120)
         self.game = game
         self.interaction = interaction
+
+    # Only allow the original user to interact
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.interaction.user.id:
+            await interaction.response.send_message("このゲームはあなたの操作ではありません。", ephemeral=True)
+            return False
+        return True
 
     async def update_message(self):
         embed = discord.Embed(
@@ -190,7 +196,6 @@ class TetrisView(discord.ui.View):
         self.game.rotate()
         await self.update_message()
 
-
 class Tetri(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -203,7 +208,6 @@ class Tetri(commands.Cog):
             description=game.render(),
             color=discord.Color.blue()
         )
-        # ここでViewインスタンスを作成し、保持しておく
         view = TetrisView(game, interaction)
         await interaction.response.send_message(embed=embed, view=view)
         
@@ -213,16 +217,9 @@ class Tetri(commands.Cog):
                 await asyncio.sleep(3)
                 if game.current_piece and game.can_move(0, 1):
                     game.move_down()
-                else:
-                    # 自動落下時、動けない場合は既にfix_pieceが呼ばれる
-                    pass
-                try:
-                    await view.update_message()
-                except Exception:
-                    break
-
+                await view.update_message()
+        
         self.bot.loop.create_task(auto_drop(view))
-
 
 async def setup(bot):
     await bot.add_cog(Tetri(bot))
