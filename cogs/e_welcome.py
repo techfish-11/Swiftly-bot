@@ -137,20 +137,22 @@ class MemberWelcomeCog(commands.Cog):
         if channel is None:
             return  # チャンネルない場合は無視
 
+        guild = self.bot.get_guild(member.guild.id)
+
         remainder = len(member.guild.members) % settings[1]  # member_increment
         if remainder == 0:
             message = (
                 f"🎉🎉🎉 お祝い 🎉🎉🎉\n"
                 f"{member.mention} さん、ようこそ！\n"
-                f"{len(member.guild.members)}人達成！\n"
-                f"{member.guild.name}のメンバーが{len(member.guild.members)}人になりました！皆さんありがとうございます！"
+                f"{len(guild.members)}人達成！\n"
+                f"{guild.name}のメンバーが{len(guild.members)}人になりました！皆さんありがとうございます！"
             )
         else:
             remaining_members = settings[1] - remainder
             message = (
                 f"{member.mention} さん、ようこそ！\n"
-                f"現在のメンバー数: {len(member.guild.members)}人\n"
-                f"あと {remaining_members} 人で {len(member.guild.members) + remaining_members}人達成です！"
+                f"現在のメンバー数: {len(guild.members)}人\n"
+                f"あと {remaining_members} 人で {len(guild.members) + remaining_members}人達成です！"
             )
 
         await channel.send(message)
