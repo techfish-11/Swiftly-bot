@@ -32,26 +32,19 @@ log_dir = "./log"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-# コマンド実行履歴のログ
-command_log_handler = TimedRotatingFileHandler(f"{log_dir}/commands.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
-command_log_handler.setLevel(logging.INFO)
-command_log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-
-# コマンドエラーのログ
-error_log_handler = TimedRotatingFileHandler(f"{log_dir}/commands_error.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
-error_log_handler.setLevel(logging.ERROR)
-error_log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+# すべてのログを1つのファイルに記録
+log_handler = TimedRotatingFileHandler(f"{log_dir}/logs.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
+log_handler.setLevel(logging.DEBUG)
+log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 
 # ロガーの設定
 logger = logging.getLogger('bot')
-logger.setLevel(logging.INFO)
-logger.addHandler(command_log_handler)
-logger.addHandler(error_log_handler)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(log_handler)
 
 # discord ロガーの設定を変更
-logging.getLogger('discord').setLevel(logging.WARNING)
-logging.getLogger('discord').addHandler(command_log_handler)
-logging.getLogger('discord').addHandler(error_log_handler)
+logging.getLogger('discord').setLevel(logging.DEBUG)
+logging.getLogger('discord').addHandler(log_handler)
 
 
 @bot.event
