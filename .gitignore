@@ -2,7 +2,7 @@
 # db/json
 *.db
 .json
-
+user_count.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
