@@ -25,12 +25,12 @@ COLOR_MAP = {
 # テトリミノの定義（各座標は原点からの相対座標）
 TETRIS_SHAPES = [
     [(0, 0), (0, 1), (0, 2), (0, 3)],          # I
-    [(0, 0), (1, 0), (0, 1), (1, 1)],          # O
-    [(0, 0), (-1, 1), (0, 1), (1, 1)],         # T
-    [(0, 0), (1, 0), (0, 1), (-1, 1)],         # S
-    [(0, 0), (-1, 0), (0, 1), (1, 1)],         # Z
-    [(0, 0), (0, 1), (0, 2), (-1, 2)],         # J
-    [(0, 0), (0, 1), (0, 2), (1, 2)]           # L
+    [(0, 0), (1, 0), (0, 1), (1, 1)],           # O
+    [(0, 0), (-1, 1), (0, 1), (1, 1)],          # T
+    [(0, 0), (1, 0), (0, 1), (-1, 1)],          # S
+    [(0, 0), (-1, 0), (0, 1), (1, 1)],          # Z
+    [(0, 0), (0, 1), (0, 2), (-1, 2)],          # J
+    [(0, 0), (0, 1), (0, 2), (1, 2)]            # L
 ]
 
 class TetrisGame:
@@ -43,7 +43,7 @@ class TetrisGame:
 
     # ボード内のセルが空ならTrue
     def is_cell_empty(self, x: int, y: int) -> bool:
-        # yがボードの外（上部隠し領域）なら空とみなす
+        # yがボードの外なら空とみなす
         if y < 0:
             return True
         if not (0 <= x < BOARD_WIDTH and y < BOARD_HEIGHT):
@@ -52,8 +52,8 @@ class TetrisGame:
 
     def spawn_piece(self):
         spawn_x = BOARD_WIDTH // 2
-        # 隠し領域分上に配置
-        spawn_y = -HIDDEN_ROWS
+        # 新しいブロックは上から4マス目に配置（隠し領域を考慮して）
+        spawn_y = HIDDEN_ROWS + 3
         type_index = random.randint(0, len(TETRIS_SHAPES) - 1)
         shape = copy.deepcopy(TETRIS_SHAPES[type_index])
         piece = {"x": spawn_x, "y": spawn_y, "shape": shape, "type": type_index}
@@ -87,8 +87,8 @@ class TetrisGame:
                 self.board[y][x] = self.current_piece["type"] + 1
         self.current_piece = None
         self.remove_complete_lines()
-        # visible top rowはボードの0行目
-        if any(cell != 0 for cell in self.board[0]):
+        # visible top rowはボードのHIDDEN_ROWS行目
+        if any(cell != 0 for cell in self.board[HIDDEN_ROWS]):
             self.game_over = True
         else:
             self.spawn_piece()
