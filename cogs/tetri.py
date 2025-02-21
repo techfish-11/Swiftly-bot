@@ -1,4 +1,6 @@
 import asyncio
+import random
+import copy
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -11,29 +13,54 @@ EMPTY = "⬛"
 FIXED = "🟦"
 FALLING = "🟪"
 
+# テトリミノの定義（各座標は原点からの相対座標）
+TETRIS_SHAPES = [
+    [(0, 0), (0, 1), (0, 2), (0, 3)],          # I
+    [(0, 0), (1, 0), (0, 1), (1, 1)],          # O
+    [(0, 0), (-1, 1), (0, 1), (1, 1)],         # T
+    [(0, 0), (1, 0), (0, 1), (-1, 1)],         # S
+    [(0, 0), (-1, 0), (0, 1), (1, 1)],         # Z
+    [(0, 0), (0, 1), (0, 2), (-1, 2)],         # J
+    [(0, 0), (0, 1), (0, 2), (1, 2)]           # L
+]
 
 class TetrisGame:
     def __init__(self):
         # 0: empty, 1: fixed block
         self.board = [[0 for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
-        self.current_piece = None  # (x, y)
+        self.current_piece = None  # {x, y, shape}
         self.game_over = False
         self.spawn_piece()
 
     def spawn_piece(self):
-        # 新しいブロックをトップ中央に出現させる
         spawn_x = BOARD_WIDTH // 2
         spawn_y = 0
-        if self.board[spawn_y][spawn_x] != 0:
+        shape = copy.deepcopy(random.choice(TETRIS_SHAPES))
+        piece = {"x": spawn_x, "y": spawn_y, "shape": shape}
+        # 当たり判定チェック
+        if any(not self.is_cell_empty(spawn_x + dx, spawn_y + dy) for (dx, dy) in piece["shape"]):
             self.game_over = True
         else:
-            self.current_piece = (spawn_x, spawn_y)
+            self.current_piece = piece
+
+    def is_cell_empty(self, x: int, y: int) -> bool:
+        if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT):
+            return False
+        return self.board[y][x] == 0
+
+    def current_piece_positions(self):
+        if self.current_piece is None:
+            return []
+        x = self.current_piece["x"]
+        y = self.current_piece["y"]
+        return [(x + dx, y + dy) for (dx, dy) in self.current_piece["shape"]]
 
     def fix_piece(self):
         if self.current_piece is None:
             return
-        x, y = self.current_piece
-        self.board[y][x] = 1
+        for (x, y) in self.current_piece_positions():
+            if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
+                self.board[y][x] = 1
         self.current_piece = None
         self.remove_complete_lines()
         self.spawn_piece()
@@ -45,31 +72,32 @@ class TetrisGame:
             new_board.insert(0, [0 for _ in range(BOARD_WIDTH)])
         self.board = new_board
 
-    def can_move(self, dx: int, dy: int) -> bool:
+    def can_move(self, dx: int, dy: int, new_shape=None) -> bool:
         if self.current_piece is None:
             return False
-        x, y = self.current_piece
-        new_x, new_y = x + dx, y + dy
-        if not (0 <= new_x < BOARD_WIDTH and 0 <= new_y < BOARD_HEIGHT):
-            return False
-        if self.board[new_y][new_x] != 0:
-            return False
+        shape = new_shape if new_shape is not None else self.current_piece["shape"]
+        new_x = self.current_piece["x"] + dx
+        new_y = self.current_piece["y"] + dy
+        for (offset_x, offset_y) in shape:
+            x = new_x + offset_x
+            y = new_y + offset_y
+            if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT):
+                return False
+            if self.board[y][x] != 0:
+                return False
         return True
 
     def move_left(self):
         if self.current_piece and self.can_move(-1, 0):
-            x, y = self.current_piece
-            self.current_piece = (x - 1, y)
+            self.current_piece["x"] -= 1
 
     def move_right(self):
         if self.current_piece and self.can_move(1, 0):
-            x, y = self.current_piece
-            self.current_piece = (x + 1, y)
+            self.current_piece["x"] += 1
 
     def move_down(self) -> bool:
         if self.current_piece and self.can_move(0, 1):
-            x, y = self.current_piece
-            self.current_piece = (x, y + 1)
+            self.current_piece["y"] += 1
             return True
         else:
             self.fix_piece()
@@ -77,27 +105,30 @@ class TetrisGame:
 
     def drop(self):
         while self.current_piece and self.can_move(0, 1):
-            x, y = self.current_piece
-            self.current_piece = (x, y + 1)
+            self.current_piece["y"] += 1
         self.fix_piece()
 
     def rotate(self):
-        # シングルセルの場合、rotateは動作しない
-        pass
+        if self.current_piece is None:
+            return
+        # 回転：各セルを (dx, dy) -> (-dy, dx) に変換
+        new_shape = [(-dy, dx) for (dx, dy) in self.current_piece["shape"]]
+        if self.can_move(0, 0, new_shape=new_shape):
+            self.current_piece["shape"] = new_shape
 
     def render(self) -> str:
-        render_lines = []
+        # ボードをレンダリング用の2次元リストにコピー
+        display = [[EMPTY for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
+        # 固定ブロック描画
         for y in range(BOARD_HEIGHT):
-            line = ""
             for x in range(BOARD_WIDTH):
-                if self.current_piece == (x, y):
-                    line += FALLING
-                elif self.board[y][x] == 1:
-                    line += FIXED
-                else:
-                    line += EMPTY
-            render_lines.append(line)
-        return "\n".join(render_lines)
+                if self.board[y][x] == 1:
+                    display[y][x] = FIXED
+        # 落下中のブロック描画
+        for (x, y) in self.current_piece_positions():
+            if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
+                display[y][x] = FALLING
+        return "\n".join("".join(row) for row in display)
 
 
 class TetrisView(discord.ui.View):
@@ -140,7 +171,7 @@ class TetrisView(discord.ui.View):
         await interaction.response.defer()
         if self.game.game_over:
             return
-        self.game.move_down()  # move_down will fix piece if it can’t move further
+        self.game.move_down()
         await self.update_message()
 
     @discord.ui.button(label="⏬", style=discord.ButtonStyle.primary)
@@ -156,7 +187,7 @@ class TetrisView(discord.ui.View):
         await interaction.response.defer()
         if self.game.game_over:
             return
-        self.game.rotate()  # No-op for single-cell piece
+        self.game.rotate()
         await self.update_message()
 
 
@@ -172,11 +203,10 @@ class Tetri(commands.Cog):
             description=game.render(),
             color=discord.Color.blue()
         )
-        # Send the initial response with the view
-        await interaction.response.send_message(embed=embed, view=TetrisView(game, interaction))
-        # Retrieve the message just sent to pass to the auto-drop task
-        msg = await interaction.original_response()
-
+        # ここでViewインスタンスを作成し、保持しておく
+        view = TetrisView(game, interaction)
+        await interaction.response.send_message(embed=embed, view=view)
+        
         async def auto_drop(view: TetrisView):
             await asyncio.sleep(3)
             while not game.game_over:
@@ -184,15 +214,13 @@ class Tetri(commands.Cog):
                 if game.current_piece and game.can_move(0, 1):
                     game.move_down()
                 else:
-                    # In move_down(), the piece is fixed automatically if it can't move
+                    # 自動落下時、動けない場合は既にfix_pieceが呼ばれる
                     pass
                 try:
                     await view.update_message()
                 except Exception:
                     break
 
-        # Start the auto-drop task passing in the view instance
-        view = msg.components[0].view
         self.bot.loop.create_task(auto_drop(view))
 
 
