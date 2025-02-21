@@ -63,6 +63,7 @@
             margin-bottom: 1rem;
             background: var(--background-gradient);
             -webkit-background-clip: text;
+            background-clip: text; /*For  Safari */
             -webkit-text-fill-color: transparent;
         }
 
@@ -81,6 +82,7 @@
 
         .server-card {
             background: rgba(255, 255, 255, 0.03);
+            -webkit-backdrop-filter: blur(10px); /*For  Safari */
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
@@ -193,7 +195,7 @@
 
         <div class="home-link">
             <p>Swiftly Bot の詳細は公式サイトをご覧ください</p>
-            <a href="https://sakana11.org/swiftly" target="_blank">
+            <a href="https://sakana11.org/swiftly" target="_blank" rel="noopener">
                 <i class="fas fa-external-link-alt"></i> sakana11.org/swiftly
             </a>
         </div>
