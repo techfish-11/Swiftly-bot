@@ -76,4 +76,4 @@ pip install -r requirements.txt
 DISCORD_TOKEN=<token>
 ```
 
-6. 実行
+6. bot.pyを実行
