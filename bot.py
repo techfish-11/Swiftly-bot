@@ -9,6 +9,7 @@ import dotenv
 import discord
 from discord.ext import commands
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 logging.getLogger('discord').setLevel(logging.WARNING)
 
@@ -25,6 +26,27 @@ bot = commands.Bot(command_prefix="sw!", intents=intents, client=client)
 # tokenを.envファイルから取得
 dotenv.load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+
+# ログの設定
+log_dir = "./log"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# コマンド実行履歴のログ
+command_log_handler = TimedRotatingFileHandler(f"{log_dir}/commands.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
+command_log_handler.setLevel(logging.INFO)
+command_log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+# コマンドエラーのログ
+error_log_handler = TimedRotatingFileHandler(f"{log_dir}/commands_error.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
+error_log_handler.setLevel(logging.ERROR)
+error_log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+# ロガーの設定
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+logger.addHandler(command_log_handler)
+logger.addHandler(error_log_handler)
 
 
 @bot.event
@@ -96,8 +118,13 @@ async def update_bot_status():
 
 
 @bot.event
+async def on_command(ctx):
+    logger.info(f"Command executed: {ctx.command}")
+
+
+@bot.event
 async def on_command_error(ctx, error):
-    print(f"Error: {error}")
+    logger.error(f"Error: {error}")
     await ctx.send("エラーが発生しました")
 
 
