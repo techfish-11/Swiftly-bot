@@ -7,11 +7,11 @@ import discord
 from discord.ext import commands
 
 # 定数定義
-API_URL = "https://js-sandbox.evex.land/"
+API_URL = "https://py-sandbox.evex.land/"
 SUPPORT_FOOTER = "API Powered by EvexDevelopers | Support Server: https://discord.gg/evex"
 
 
-class Sandbox(commands.Cog):
+class Sandboxpy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
@@ -75,8 +75,8 @@ class Sandbox(commands.Cog):
             return None, f"予期せぬエラー: {str(e)}", 0.0
 
     @discord.app_commands.command(
-        name="sandbox",
-        description="JavaScript コードをサンドボックスで実行し、結果を返します。"
+        name="pysandbox",
+        description="Python コードをサンドボックスで実行し、結果を返します。"
     )
     async def sandbox(self, ctx: discord.Interaction, code: str) -> None:
         await ctx.response.defer(thinking=True)
@@ -89,10 +89,10 @@ class Sandbox(commands.Cog):
         if message.author.bot:
             return
 
-        if message.content.startswith("?sandbox"):
-            code = message.content[len("?sandbox "):].strip()
+        if message.content.startswith("?pysandbox"):
+            code = message.content[len("?pysandbox "):].strip()
             if not code:
-                await message.channel.send("実行するコードを入力してください。")
+                await message.channel.send("実行するPythonコードを入力してください。")
                 return
 
             progress_message = await message.channel.send("実行中...")
@@ -106,4 +106,4 @@ class Sandbox(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(Sandbox(bot))
+    await bot.add_cog(Sandboxpy(bot))

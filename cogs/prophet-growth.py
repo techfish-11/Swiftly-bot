@@ -1,5 +1,6 @@
 import asyncio
 import io
+import itertools
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,8 @@ import matplotlib.pyplot as plt
 
 import discord
 from discord.ext import commands
+
+from prophet import Prophet
 
 
 class ProphetGrowth(commands.Cog):
@@ -34,16 +37,15 @@ class ProphetGrowth(commands.Cog):
             # Send initial progress message
             progress_message = await interaction.followup.send("データを処理中... 0%")
 
-            # Fit the model in a separate thread to avoid blocking
-            loop = asyncio.get_event_loop()
-            model = await loop.run_in_executor(None, self.fit_model, df)
+            # Fit the model asynchronously
+            model = await self.fit_model(df)
 
             # Update progress
             await progress_message.edit(content="データを処理中... 50%")
 
             future = model.make_future_dataframe(periods=92)
-            # 予測処理を別スレッドで実行（従来は同期実行）
-            forecast = await loop.run_in_executor(None, model.predict, future)
+            # 予測処理を非同期で実行
+            forecast = await self.predict_model(model, future)
 
             # Update progress
             await progress_message.edit(content="データを処理中... 75%")
@@ -55,8 +57,8 @@ class ProphetGrowth(commands.Cog):
                 return
 
             if show_graph:
-                # Generate the plot in a separate thread to avoid blocking
-                buf = await loop.run_in_executor(None, self.generate_plot, join_dates, forecast, target, found_date)
+                # Generate the plot asynchronously
+                buf = await self.generate_plot(join_dates, forecast, target, found_date)
                 file = discord.File(buf, filename="prophet_growth_prediction.png")
 
                 embed = discord.Embed(title="Server Growth Prediction with Prophet", description=f"{target}人に達する予測日: {found_date}", color=discord.Color.blue())
@@ -81,7 +83,7 @@ class ProphetGrowth(commands.Cog):
         except Exception as e:
             await interaction.followup.send(f"エラーが発生しました: {e}")
 
-    def fit_model(self, df):
+    async def fit_model(self, df):
         # 文字列の日付をdatetime型に変換（必要に応じて）
         df["ds"] = pd.to_datetime(df["ds"])
         # 改善されたモデル設定: changepointsの数を増やし、より詳細な週次季節性を追加
@@ -91,16 +93,19 @@ class ProphetGrowth(commands.Cog):
             seasonality_mode="multiplicative"
         )
         model.add_seasonality(name="weekly", period=7, fourier_order=3)
-        model.fit(df)
+        await asyncio.to_thread(model.fit, df)
         return model
 
-    def find_target_date(self, forecast, target):
-        for _, row in forecast.iterrows():
-            if row["yhat"] >= target:
-                return row["ds"]
-        return None
+    async def predict_model(self, model, future):
+        return await asyncio.to_thread(model.predict, future)
 
-    def generate_plot(self, join_dates, forecast, target, found_date):
+    def find_target_date(self, forecast, target):
+        return next((row["ds"] for _, row in forecast.iterrows() if row["yhat"] >= target), None)
+
+    async def generate_plot(self, join_dates, forecast, target, found_date):
+        return await asyncio.to_thread(self._generate_plot, join_dates, forecast, target, found_date)
+
+    def _generate_plot(self, join_dates, forecast, target, found_date):
         plt.figure(figsize=(12, 8))
         plt.scatter(join_dates, np.arange(1, len(join_dates) + 1), color="blue", label="Actual Data", alpha=0.6)
         plt.plot(forecast["ds"], forecast["yhat"], color="red", label="Prediction", linewidth=2)

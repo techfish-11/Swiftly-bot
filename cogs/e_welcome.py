@@ -17,6 +17,7 @@ class MemberWelcomeCog(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         if member.guild.id != self.GUILD_ID:
             return
+        print("member join")
 
         guild = self.bot.get_guild(self.GUILD_ID)
         channel = guild.get_channel(self.CHANNEL_ID)
@@ -24,30 +25,21 @@ class MemberWelcomeCog(commands.Cog):
         if guild is not None and channel is not None:
             remainder = len(guild.members) % self.TARGET_MEMBER_INCREMENT
             if remainder == 0:
-                embed = discord.Embed(
-                    title="🎉🎉🎉 お祝い 🎉🎉🎉",
-                    description=(
-                        f"{member.mention} さん、ようこそ！\n"
-                        f"{len(guild.members)}人達成！\n"
-                        f"{guild.name}のメンバーが{len(guild.members)}人になりました！皆さんありがとうございます！"
-                    ),
-                    color=discord.Color.gold()
+                message = (
+                    f"🎉🎉🎉 お祝い 🎉🎉🎉\n"
+                    f"{member.mention} さん、ようこそ！\n"
+                    f"{len(guild.members)}人達成！\n"
+                    f"{guild.name}のメンバーが{len(guild.members)}人になりました！皆さんありがとうございます！"
                 )
-                embed.set_footer(text="Hosted by techfish")
-                await channel.send(embed=embed)
+                await channel.send(message)
             else:
                 remaining_members = self.TARGET_MEMBER_INCREMENT - remainder
-                embed = discord.Embed(
-                    title="ようこそ！",
-                    description=(
-                        f"{member.mention} さん、ようこそ！\n"
-                        f"現在のメンバー数: {len(guild.members)}人。\n"
-                        f"あと {remaining_members} 人で {len(guild.members) + remaining_members}人達成です！"
-                    ),
-                    color=discord.Color.green()
+                message = (
+                    f"{member.mention} さん、ようこそ！\n"
+                    f"現在のメンバー数: {len(guild.members)}人。\n"
+                    f"あと {remaining_members} 人で {len(guild.members) + remaining_members}人達成です！"
                 )
-                embed.set_footer(text="Hosted by techfish")
-                await channel.send(embed=embed)
+                await channel.send(message)
 
     def _read_yml(self):
         """ Load configuration from evex.yml """

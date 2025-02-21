@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiftly Server Board | TechFish_Lab</title>
+    <meta name="description" content="Swiftlyのサーバー掲示板 - Discordサーバーを宣伝しよう">
+    <link rel="icon" href="https://cdn.sakana11.org/icon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7289da;
+            --secondary-color: #2c2f33;
+            --accent-color: #00b8d4;
+            --text-light: #ffffff;
+            --text-dark: #1a1a1a;
+            --background-gradient: linear-gradient(135deg, #7289da, #00b8d4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--secondary-color);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .hero-section {
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(114, 137, 218, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 184, 212, 0.15) 0%, transparent 40%);
+            z-index: -1;
+            animation: bgPulse 10s ease-in-out infinite;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: var(--background-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: var(--text-light);
+        }
+
+        .server-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .server-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .server-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .server-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .server-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin-right: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .server-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .server-description {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+            min-height: 60px;
+        }
+
+        .server-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1rem;
+        }
+
+        .join-button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: var(--background-gradient);
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        .join-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 184, 212, 0.3);
+        }
+
+        .home-link {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .home-link a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .home-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .server-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-bg"></div>
+        <h1>Swiftly Server Board</h1>
+        <p class="description">
+            <i class="fas fa-bullhorn"></i> Discordサーバーを宣伝しよう！<br>
+            <small>
+                /register でサーバーを登録 | /board-setting で説明を追加 | /up で表示順位アップ
+            </small>
+        </p>
+    </div>
+
+    <div class="container">
+        <div id="server-list" class="server-grid">
+            <!-- サーバーカードが動的に追加されます -->
+        </div>
+
+        <div class="home-link">
+            <p>Swiftly Bot の詳細は公式サイトをご覧ください</p>
+            <a href="https://sakana11.org/swiftly" target="_blank">
+                <i class="fas fa-external-link-alt"></i> sakana11.org/swiftly
+            </a>
+        </div>
+    </div>
+
+    <template id="server-card-template">
+        <div class="server-card">
+            <div class="server-header">
+                <img class="server-icon" src="" alt="Server Icon">
+                <h2 class="server-name"></h2>
+            </div>
+            <p class="server-description"></p>
+            <div class="server-meta">
+                <span class="last-up-time"></span>
+                <span class="registered-at"></span>
+            </div>
+            <a href="#" class="join-button" target="_blank">
+                <i class="fab fa-discord"></i> サーバーに参加
+            </a>
+        </div>
+    </template>
+
+    <script>
+        async function fetchServers() {
+            try {
+                const response = await fetch('https://sw.sakana11.org/api/servers');
+                const servers = await response.json();
+                const serverList = document.getElementById('server-list');
+                const template = document.getElementById('server-card-template');
+
+                serverList.innerHTML = '';
+
+                servers.forEach(server => {
+                    const clone = template.content.cloneNode(true);
+                    
+                    const icon = clone.querySelector('.server-icon');
+                    icon.src = server.icon_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+                    icon.alt = `${server.server_name} icon`;
+
+                    clone.querySelector('.server-name').textContent = server.server_name;
+                    clone.querySelector('.server-description').textContent = 
+                        server.description || 'このサーバーはまだ説明文を設定していません。';
+
+                    const lastUpTimeElement = clone.querySelector('.last-up-time');
+                    if (server.time_since_last_up) {
+                        lastUpTimeElement.innerHTML = `<i class="fas fa-clock"></i> ${server.time_since_last_up}`;
+                    } else {
+                        lastUpTimeElement.innerHTML = '<i class="fas fa-clock"></i> まだupされていません';
+                    }
+
+                    const registeredDate = new Date(server.registered_at);
+                    clone.querySelector('.registered-at').innerHTML = 
+                        `<i class="fas fa-calendar"></i> ${registeredDate.toLocaleDateString('ja-JP')}`;
+
+                    const joinButton = clone.querySelector('.join-button');
+                    if (server.invite_url) {
+                        joinButton.href = server.invite_url;
+                    } else {
+                        joinButton.classList.add('disabled');
+                        joinButton.style.opacity = '0.5';
+                        joinButton.innerHTML = '<i class="fas fa-ban"></i> 招待リンクがありません';
+                    }
+
+                    serverList.appendChild(clone);
+                });
+            } catch (error) {
+                console.error('Error fetching servers:', error);
+                document.getElementById('server-list').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center;">
+                        <div style="padding: 2rem; background: rgba(255,0,0,0.1); border-radius: 8px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            サーバーの情報を取得できませんでした。しばらく経ってから再度お試しください。
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        fetchServers();
+        setInterval(fetchServers, 60000);
+    </script>
+</body>
+</html></a>

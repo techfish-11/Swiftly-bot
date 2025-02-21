@@ -1,0 +1,15 @@
+discord.py
+python-dotenv
+aiohttp
+matplotlib
+numpy
+pandas
+scikit-learn
+statsmodels
+prophet
+edge-tts
+wikipedia
+opencv-python
+pyyaml
+fastapi
+uvicorn
