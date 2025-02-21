@@ -8,10 +8,18 @@ from discord import app_commands
 # 定数設定
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 15
-# 絵文字での描画
 EMPTY = "⬛"
-FIXED = "🟦"
-FALLING = "🟪"
+
+# 各テトリミノに対応する色（emoji）
+COLOR_MAP = {
+    0: "🟦",  # I
+    1: "🟨",  # O
+    2: "🟪",  # T
+    3: "🟩",  # S
+    4: "🟥",  # Z
+    5: "🟧",  # J
+    6: "🟫"   # L
+}
 
 # テトリミノの定義（各座標は原点からの相対座標）
 TETRIS_SHAPES = [
@@ -26,17 +34,18 @@ TETRIS_SHAPES = [
 
 class TetrisGame:
     def __init__(self):
-        # 0: empty, 1: fixed block
+        # 0: empty, >0: fixed block (type index + 1)
         self.board = [[0 for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
-        self.current_piece = None  # {x, y, shape}
+        self.current_piece = None  # {x, y, shape, type}
         self.game_over = False
         self.spawn_piece()
 
     def spawn_piece(self):
         spawn_x = BOARD_WIDTH // 2
         spawn_y = 0
-        shape = copy.deepcopy(random.choice(TETRIS_SHAPES))
-        piece = {"x": spawn_x, "y": spawn_y, "shape": shape}
+        type_index = random.randint(0, len(TETRIS_SHAPES) - 1)
+        shape = copy.deepcopy(TETRIS_SHAPES[type_index])
+        piece = {"x": spawn_x, "y": spawn_y, "shape": shape, "type": type_index}
         # 当たり判定チェック
         if any(not self.is_cell_empty(spawn_x + dx, spawn_y + dy) for (dx, dy) in piece["shape"]):
             self.game_over = True
@@ -58,15 +67,16 @@ class TetrisGame:
     def fix_piece(self):
         if self.current_piece is None:
             return
+        # 固定ブロックはテトリミノの種類に応じた値（type_index+1）を保存
         for (x, y) in self.current_piece_positions():
             if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
-                self.board[y][x] = 1
+                self.board[y][x] = self.current_piece["type"] + 1
         self.current_piece = None
         self.remove_complete_lines()
         self.spawn_piece()
 
     def remove_complete_lines(self):
-        new_board = [row for row in self.board if not all(cell == 1 for cell in row)]
+        new_board = [row for row in self.board if not all(cell != 0 for cell in row)]
         lines_cleared = BOARD_HEIGHT - len(new_board)
         for _ in range(lines_cleared):
             new_board.insert(0, [0 for _ in range(BOARD_WIDTH)])
@@ -111,23 +121,32 @@ class TetrisGame:
     def rotate(self):
         if self.current_piece is None:
             return
-        # 回転：各セルを (dx, dy) -> (-dy, dx) に変換
-        new_shape = [(-dy, dx) for (dx, dy) in self.current_piece["shape"]]
-        if self.can_move(0, 0, new_shape=new_shape):
-            self.current_piece["shape"] = new_shape
+        old_shape = self.current_piece["shape"]
+        rotated_shape = [(-dy, dx) for (dx, dy) in old_shape]
+        old_cx = sum(x for x, _ in old_shape) / len(old_shape)
+        old_cy = sum(y for _, y in old_shape) / len(old_shape)
+        new_cx = sum(x for x, _ in rotated_shape) / len(rotated_shape)
+        new_cy = sum(y for _, y in rotated_shape) / len(rotated_shape)
+        offset_x = round(old_cx - new_cx)
+        offset_y = round(old_cy - new_cy)
+        adjusted_shape = [(x + offset_x, y + offset_y) for (x, y) in rotated_shape]
+        if self.can_move(0, 0, new_shape=adjusted_shape):
+            self.current_piece["shape"] = adjusted_shape
 
     def render(self) -> str:
-        # ボードをレンダリング用の2次元リストにコピー
         display = [[EMPTY for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
-        # 固定ブロック描画
+        # 固定ブロックの描画（boardの値 > 0 のとき対応する色を表示）
         for y in range(BOARD_HEIGHT):
             for x in range(BOARD_WIDTH):
-                if self.board[y][x] == 1:
-                    display[y][x] = FIXED
-        # 落下中のブロック描画
-        for (x, y) in self.current_piece_positions():
-            if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
-                display[y][x] = FALLING
+                if self.board[y][x] != 0:
+                    color_index = self.board[y][x] - 1
+                    display[y][x] = COLOR_MAP[color_index]
+        # 落下中のブロックの描画
+        if self.current_piece:
+            piece_color = COLOR_MAP[self.current_piece["type"]]
+            for (x, y) in self.current_piece_positions():
+                if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
+                    display[y][x] = piece_color
         return "\n".join("".join(row) for row in display)
 
 class TetrisView(discord.ui.View):
@@ -136,7 +155,6 @@ class TetrisView(discord.ui.View):
         self.game = game
         self.interaction = interaction
 
-    # Only allow the original user to interact
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.interaction.user.id:
             await interaction.response.send_message("このゲームはあなたの操作ではありません。", ephemeral=True)
