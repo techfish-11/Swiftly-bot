@@ -39,11 +39,11 @@ log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname
 
 # ロガーの設定
 logger = logging.getLogger('bot')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 logger.addHandler(log_handler)
 
 # discord ロガーの設定を変更
-logging.getLogger('discord').setLevel(logging.DEBUG)
+logging.getLogger('discord').setLevel(logging.WARNING)
 logging.getLogger('discord').addHandler(log_handler)
 
 
