@@ -43,10 +43,15 @@ error_log_handler.setLevel(logging.ERROR)
 error_log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 
 # ロガーの設定
-logger = logging.getLogger('discord')
+logger = logging.getLogger('bot')
 logger.setLevel(logging.INFO)
 logger.addHandler(command_log_handler)
 logger.addHandler(error_log_handler)
+
+# discord ロガーの設定を変更
+logging.getLogger('discord').setLevel(logging.WARNING)
+logging.getLogger('discord').addHandler(command_log_handler)
+logging.getLogger('discord').addHandler(error_log_handler)
 
 
 @bot.event
