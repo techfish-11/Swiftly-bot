@@ -24,7 +24,8 @@ class MemberWelcomeCog(commands.Cog):
         CREATE TABLE IF NOT EXISTS welcome_settings (
             guild_id INTEGER PRIMARY KEY,
             is_enabled INTEGER DEFAULT 0,
-            member_increment INTEGER DEFAULT 100
+            member_increment INTEGER DEFAULT 100,
+            channel_id INTEGER DEFAULT NULL
         )
         """)
 
@@ -36,30 +37,31 @@ class MemberWelcomeCog(commands.Cog):
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT is_enabled, member_increment FROM welcome_settings WHERE guild_id = ?",
+            "SELECT is_enabled, member_increment, channel_id FROM welcome_settings WHERE guild_id = ?",
             (guild_id,)
         )
         result = cursor.fetchone()
         conn.close()
 
         if result is None:
-            return (False, 100)  # デフォルト100人ずつ
-        return (bool(result[0]), result[1])
+            return (False, 100, None)  # デフォルト100人ずつ
+        return (bool(result[0]), result[1], result[2])
 
-    def _update_guild_settings(self, guild_id: int, is_enabled: bool, member_increment: int = None):
+    def _update_guild_settings(self, guild_id: int, is_enabled: bool, member_increment: int = None, channel_id: int = None):
         """Update guild welcome settings"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         cursor.execute(
             """
-            INSERT INTO welcome_settings (guild_id, is_enabled, member_increment)
-            VALUES (?, ?, ?)
+            INSERT INTO welcome_settings (guild_id, is_enabled, member_increment, channel_id)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT(guild_id) DO UPDATE SET
                 is_enabled = excluded.is_enabled,
-                member_increment = COALESCE(?, welcome_settings.member_increment)
+                member_increment = COALESCE(?, welcome_settings.member_increment),
+                channel_id = COALESCE(?, welcome_settings.channel_id)
             """,
-            (guild_id, is_enabled, member_increment, member_increment)
+            (guild_id, is_enabled, member_increment, channel_id, member_increment, channel_id)
         )
 
         conn.commit()
@@ -71,13 +73,15 @@ class MemberWelcomeCog(commands.Cog):
     )
     @app_commands.describe(
         action="on/off - 参加メッセージをON/OFFにします",
-        increment="何人ごとにお祝いメッセージを送信するか設定 (デフォルト: 100)"
+        increment="何人ごとにお祝いメッセージを送信するか設定 (デフォルト: 100)",
+        channel="メッセージを送信するチャンネル"
     )
     async def welcome_command(
         self,
         interaction: discord.Interaction,
         action: str,
-        increment: int = None
+        increment: int = None,
+        channel: discord.TextChannel = None
     ):
         # このあたりは適宜変更してね
         if not interaction.user.guild_permissions.manage_guild:
@@ -91,17 +95,27 @@ class MemberWelcomeCog(commands.Cog):
         is_enabled = action.lower() == "on"
 
         # OFFの時もincrementが指定されるかもだけどまぁ気になるならいじろう
+        if not increment:
+            increment = 100
+
         if increment and (increment < 5 or increment > 1000):
             await interaction.response.send_message("5～1000人の間で指定してね", ephemeral=True)
             return
 
+        if is_enabled and channel is None:
+            await interaction.response.send_message("ONにする場合はチャンネルを指定してね", ephemeral=True)
+            return
+
+        channel_id = channel.id if channel else None
         self._update_guild_settings(
-            interaction.guild_id, is_enabled, increment)
+            interaction.guild_id, is_enabled, increment, channel_id)
 
         settings = self._get_guild_settings(interaction.guild_id)
         if is_enabled:
+            channel_mention = f"<#{settings[2]}>"
             await interaction.response.send_message(
-                f"参加メッセージをONにしたよ!\n{settings[1]}人ごとにお祝いメッセージを送信します",
+                f"参加メッセージをONにしたよ!\n"
+                f"{settings[1]}人ごとに{channel_mention}でお祝いメッセージを送信します",
                 ephemeral=True
             )
         else:
@@ -120,22 +134,13 @@ class MemberWelcomeCog(commands.Cog):
             return
         self.last_welcome_time[member.guild.id] = now
 
-        # システムメッセージチャンネル
-        channel = None
-        for ch in member.guild.channels:
-            if isinstance(ch, discord.TextChannel) and ch.is_news():
-                channel = ch
-                break
+        # 設定されたチャンネルを取得
+        channel = member.guild.get_channel(settings[2])
 
         if channel is None:
-            # 一般チャンネル
-            for ch in member.guild.channels:
-                if isinstance(ch, discord.TextChannel) and ch.name in ["general", "一般"]:
-                    channel = ch
-                    break
-
-        if channel is None:
-            return  # チャンネルない場合は無視
+            # チャンネルが見つからない場合は設定をOFFにする
+            self._update_guild_settings(member.guild.id, False)
+            return
 
         guild = self.bot.get_guild(member.guild.id)
 
