@@ -177,7 +177,7 @@ class IconCheck(commands.Cog):
                 await message.delete()
                 embed = discord.Embed(
                     title="警告",
-                    description=f"{user.mention}、デフォルトのアバターまたは本日作成されたアカウントではメッセージを送信できません。",
+                    description=f"{user.mention}、デフォルトのアバターかつ本日作成されたアカウントではメッセージを送信できません。",
                     color=discord.Color.red()
                 )
                 warning_message = await message.channel.send(embed=embed)
