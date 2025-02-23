@@ -1,6 +1,5 @@
 import re
 from collections import Counter
-import asyncio
 import discord
 from discord.ext import commands
 
@@ -19,9 +18,9 @@ class Youyaku(commands.Cog):
 
         try:
             # Fetch the message history
-            messages = await channel.history(limit=num_messages).flatten()
+            # Fetch the message history
+            messages = [message async for message in channel.history(limit=num_messages)]
             message_contents = [message.content for message in messages if message.content]
-
             if not message_contents:
                 await interaction.followup.send("要約するメッセージが見つかりませんでした。")
                 return
