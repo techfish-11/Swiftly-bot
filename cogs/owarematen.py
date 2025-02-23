@@ -28,8 +28,10 @@ class DiscowaremaTen(commands.Cog):
             CREATE TABLE IF NOT EXISTS answers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 session_id TEXT,
+                user_id INTEGER,
                 user_name TEXT,
-                answer TEXT
+                answer TEXT,
+                UNIQUE(session_id, user_id)
             )
         """)
         conn.commit()
@@ -132,19 +134,33 @@ class DiscowaremaTen(commands.Cog):
             conn.close()
             await ctx.response.send_message("ゲームが開始されていません。/owarematen-start-customで開始してください。", ephemeral=True)
             return
+        
         session_id = session[0]
-        c.execute("INSERT INTO answers (session_id, user_name, answer) VALUES (?, ?, ?)", (session_id, ctx.user.name, answer))
-        conn.commit()
-        c.execute("SELECT COUNT(*) FROM answers WHERE session_id = ?", (session_id,))
-        count = c.fetchone()[0]
-        conn.close()
-        # ユーザーにはエフェメラルな確認メッセージを送信
-        await ctx.response.send_message(f"{answer}で回答しました", ephemeral=True)
-        # 公開通知も埋め込みで送信し、セッション情報も記載
-        notify_embed = discord.Embed(title="回答受付", description=f"{ctx.user.name}が回答しました。", color=discord.Color.orange())
-        notify_embed.add_field(name="現在の回答数", value=str(count), inline=False)
-        notify_embed.set_footer(text=f"セッションID: {session_id}")
-        await ctx.channel.send(embed=notify_embed)
+        
+        # 既に回答済みかチェック
+        c.execute("SELECT * FROM answers WHERE session_id = ? AND user_id = ?", (session_id, ctx.user.id))
+        if c.fetchone():
+            conn.close()
+            await ctx.response.send_message("既に回答済みです。一人一回のみ回答できます。", ephemeral=True)
+            return
+            
+        try:
+            c.execute("INSERT INTO answers (session_id, user_id, user_name, answer) VALUES (?, ?, ?, ?)", 
+                     (session_id, ctx.user.id, ctx.user.name, answer))
+            conn.commit()
+            c.execute("SELECT COUNT(*) FROM answers WHERE session_id = ?", (session_id,))
+            count = c.fetchone()[0]
+            conn.close()
+            
+            await ctx.response.send_message(f"{answer}で回答しました", ephemeral=True)
+            notify_embed = discord.Embed(title="回答受付", description=f"{ctx.user.name}が回答しました。", color=discord.Color.orange())
+            notify_embed.add_field(name="現在の回答数", value=str(count), inline=False)
+            notify_embed.set_footer(text=f"セッションID: {session_id}")
+            await ctx.channel.send(embed=notify_embed)
+            
+        except sqlite3.IntegrityError:
+            conn.close()
+            await ctx.response.send_message("既に回答済みです。一人一回のみ回答できます。", ephemeral=True)
 
 
 async def setup(bot):
