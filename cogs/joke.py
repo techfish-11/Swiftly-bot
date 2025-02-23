@@ -189,6 +189,19 @@ class LoveCalculator(commands.Cog):
 
         return [love_score, user2_to_user1_friend, user1_to_user2_friend]
 
+    def K7StatsCalc(self, name: str):
+        # ユーザー名のハッシュ値をシードにして乱数生成
+        random.seed(hash(name))
+        # 装備はプログラミング言語リストからランダムに選択
+        equip = random.choice(prog_langs)
+        # 攻撃力は50～150の範囲
+        attack = random.randint(50, 150)
+        # 守備力は0～100の範囲
+        defense = random.randint(0, 100)
+        # 最大HPは200～1000の範囲
+        max_hp = random.randint(200, 1000)
+        return [equip, attack, defense, max_hp]
+
     def get_love_message(self, user1_name, user2_name, score, user1_to_user2, user2_to_user1):
         if user1_to_user2 - user2_to_user1 > 70:
             return user1_name + "よ、諦めろ。"
