@@ -36,8 +36,8 @@ class DiscowaremaTen(commands.Cog):
         conn.close()
 
     async def auto_open(self, session_id: str, channel_id: int, guild_id: int):
-        # 15分待機
-        await asyncio.sleep(15 * 60)
+        # 1時間待機
+        await asyncio.sleep(60 * 60)
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         c.execute("SELECT session_id, theme FROM sessions WHERE session_id = ?", (session_id,))
@@ -86,11 +86,11 @@ class DiscowaremaTen(commands.Cog):
         embed = discord.Embed(title="終われまテン", description="V1.0 by K-Nana", color=discord.Color.blurple())
         embed.add_field(name="お題", value=theme, inline=False)
         embed.add_field(name="回答方法", value="/owarematen-answerで回答できます。", inline=False)
-        embed.add_field(name="注意", value="このセッションは15分後に自動で終了し回答が公開されます。", inline=False)
+        embed.add_field(name="注意", value="このセッションは1時間後に自動で終了し回答が公開されます。", inline=False)
         embed.set_footer(text=f"セッションID: {session_id}")
         await ctx.response.send_message(embed=embed)
         
-        # 15分後に自動で回答を公開するタスクをスケジュール
+        # 1時間後に自動で回答を公開するタスクをスケジュール
         self.bot.loop.create_task(self.auto_open(session_id, ctx.channel.id, ctx.guild_id))
 
     @discord.app_commands.command(name="owarematen-open-answers", description="全員の回答を開きます。終われまテンの終了コマンドも兼ねています。")
