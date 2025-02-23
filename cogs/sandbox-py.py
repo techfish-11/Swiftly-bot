@@ -8,7 +8,7 @@ from discord.ext import commands
 
 # 定数定義
 API_URL = "https://py-sandbox.evex.land/"
-SUPPORT_FOOTER = "API Powered by EvexDevelopers | Support Server: https://discord.gg/evex"
+SUPPORT_FOOTER = "API Powered by EvexDevelopers"
 
 
 class Sandboxpy(commands.Cog):
