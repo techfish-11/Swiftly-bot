@@ -53,13 +53,13 @@ class Help(commands.Cog):
                 "- Wikipediaでものを検索できます。\n"
                 "- 曖昧なページも検索できます。\n"
                 "\n\n"
-                "ほかにもあります。/help-commandで確認してください。"
+                "ほかにもあります。https://sakana11.org/swiftly/commands.html で確認してください。"
             ),
             inline=False
         )
 
         embed.set_footer(
-            text="Hosted by TechFish_Lab \nSupport Server: https://discord.gg/evex")
+            text="Hosted by TechFish_Lab")
 
         await interaction.response.send_message(embed=embed)
 
