@@ -39,7 +39,7 @@ class DiscowaremaTen(commands.Cog):
         session = c.fetchone()
         if session:
             embed = discord.Embed(title="終われまテン", description="V1.0 by K-Nana", color=discord.Color.red())
-            embed.add_field(name="他のゲームが進行中です", value="先に/open_answersでゲームを終了してください。", inline=False)
+            embed.add_field(name="他のゲームが進行中です", value="先に/owarematen-open-answersでゲームを終了してください。", inline=False)
             embed.set_footer(text=f"セッションID: {session[0]}")
             await ctx.response.send_message(embed=embed)
             conn.close()
@@ -82,7 +82,7 @@ class DiscowaremaTen(commands.Cog):
         else:
             conn.close()
             embed = discord.Embed(title="終われまテン", description="V1.0 by K-Nana", color=discord.Color.red())
-            embed.add_field(name="ゲームが開始されていません", value="先に/start_customでゲームを開始してください。", inline=False)
+            embed.add_field(name="ゲームが開始されていません", value="先に/owarematen-start-customでゲームを開始してください。", inline=False)
             await ctx.response.send_message(embed=embed)
 
     @discord.app_commands.command(name="owarematen-answer", description="終われまテンに回答します。")
@@ -93,7 +93,7 @@ class DiscowaremaTen(commands.Cog):
         session = c.fetchone()
         if not session:
             conn.close()
-            await ctx.response.send_message("ゲームが開始されていません。/start_customで開始してください。", ephemeral=True)
+            await ctx.response.send_message("ゲームが開始されていません。/owarematen-start-customで開始してください。", ephemeral=True)
             return
         session_id = session[0]
         c.execute("INSERT INTO answers (session_id, user_name, answer) VALUES (?, ?, ?)", (session_id, ctx.user.name, answer))
