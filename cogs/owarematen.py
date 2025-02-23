@@ -2,11 +2,15 @@ import discord
 from discord.ext import commands
 import sqlite3
 import uuid
+import os
+import asyncio
+
 
 class DiscowaremaTen(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.db_path = 'data/owarematen_session.db'
+        # ディレクトリに対して正しいパスを設定
+        self.db_path = os.path.join(os.path.dirname(__file__), "..", "data", "owarematen_session.db")
         self.init_db()
 
     def init_db(self):
@@ -31,6 +35,34 @@ class DiscowaremaTen(commands.Cog):
         conn.commit()
         conn.close()
 
+    async def auto_open(self, session_id: str, channel_id: int, guild_id: int):
+        # 15分待機
+        await asyncio.sleep(15 * 60)
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT session_id, theme FROM sessions WHERE session_id = ?", (session_id,))
+        session = c.fetchone()
+        if not session:
+            conn.close()
+            return
+        theme = session[1]
+        embed = discord.Embed(title="自動終了: 終われまテン", description="V1.0 by K-Nana", color=discord.Color.green())
+        embed.add_field(name="お題", value=theme, inline=False)
+        c.execute("SELECT user_name, answer FROM answers WHERE session_id = ?", (session_id,))
+        answers = c.fetchall()
+        if len(answers) == 0:
+            embed.add_field(name="おっと。", value="誰も答えていないようです...", inline=False)
+        else:
+            for user_name, answer in answers:
+                embed.add_field(name=f"{user_name}の回答", value=answer, inline=False)
+        c.execute("DELETE FROM sessions WHERE session_id = ?", (session_id,))
+        c.execute("DELETE FROM answers WHERE session_id = ?", (session_id,))
+        conn.commit()
+        conn.close()
+        channel = self.bot.get_channel(channel_id)
+        if channel:
+            await channel.send(embed=embed)
+
     @discord.app_commands.command(name="owarematen-start-custom", description="終われまテンをカスタムお題で開始します。")
     async def start_custom(self, ctx, theme: str):
         conn = sqlite3.connect(self.db_path)
@@ -50,11 +82,16 @@ class DiscowaremaTen(commands.Cog):
         conn.commit()
         conn.close()
         
+        # セッション開始時のメッセージにタイムアウトの情報を追加
         embed = discord.Embed(title="終われまテン", description="V1.0 by K-Nana", color=discord.Color.blurple())
         embed.add_field(name="お題", value=theme, inline=False)
-        embed.add_field(name="回答方法", value="/answerで回答できます。", inline=False)
+        embed.add_field(name="回答方法", value="/owarematen-answerで回答できます。", inline=False)
+        embed.add_field(name="注意", value="このセッションは15分後に自動で終了し回答が公開されます。", inline=False)
         embed.set_footer(text=f"セッションID: {session_id}")
         await ctx.response.send_message(embed=embed)
+        
+        # 15分後に自動で回答を公開するタスクをスケジュール
+        self.bot.loop.create_task(self.auto_open(session_id, ctx.channel.id, ctx.guild_id))
 
     @discord.app_commands.command(name="owarematen-open-answers", description="全員の回答を開きます。終われまテンの終了コマンドも兼ねています。")
     async def open_answers(self, ctx):
@@ -70,10 +107,10 @@ class DiscowaremaTen(commands.Cog):
             c.execute("SELECT user_name, answer FROM answers WHERE session_id = ?", (session_id,))
             answers = c.fetchall()
             if len(answers) == 0:
-                embed.add_field(name="おっと。", value="誰も答えていないようです...", inline=True)
+                embed.add_field(name="おっと。", value="誰も答えていないようです...", inline=False)
             else:
                 for user_name, answer in answers:
-                    embed.add_field(name=f"{user_name}の回答", value=answer, inline=True)
+                    embed.add_field(name=f"{user_name}の回答", value=answer, inline=False)
             c.execute("DELETE FROM sessions WHERE session_id = ?", (session_id,))
             c.execute("DELETE FROM answers WHERE session_id = ?", (session_id,))
             conn.commit()
@@ -101,8 +138,13 @@ class DiscowaremaTen(commands.Cog):
         c.execute("SELECT COUNT(*) FROM answers WHERE session_id = ?", (session_id,))
         count = c.fetchone()[0]
         conn.close()
+        # ユーザーにはエフェメラルな確認メッセージを送信
         await ctx.response.send_message(f"{answer}で回答しました", ephemeral=True)
-        await ctx.channel.send(f"{ctx.user.name}が回答しました（回答者数：{count}）")
+        # 公開通知も埋め込みで送信し、セッション情報も記載
+        notify_embed = discord.Embed(title="回答受付", description=f"{ctx.user.name}が回答しました。", color=discord.Color.orange())
+        notify_embed.add_field(name="現在の回答数", value=str(count), inline=False)
+        notify_embed.set_footer(text=f"セッションID: {session_id}")
+        await ctx.channel.send(embed=notify_embed)
 
 
 async def setup(bot):
